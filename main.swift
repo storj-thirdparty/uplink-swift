@@ -16,7 +16,7 @@ var storjSatellite : NSString = "us-central-1.tardigrade.io:7777"
 // Encryption passphrase
 var storjEncryptionPassphrase : NSString = "test"
 // Bucket name
-var storjBucket : NSString = "macbucket07"
+var storjBucket : NSString = "macbucket12"
 //
 // Upload path within the bucket, whereto the sample message is to be uploaded.
 var storjUploadPath : NSString = "path/hellostorj.txt"
@@ -28,6 +28,10 @@ var localFullFileNameToUpload : NSString = "/Users/webwerks/swift/src/storj-swif
 // Local full path, where the Storj object is to be stored after download.
 var localFullFileLocationToStore : NSString = "/Users/webwerks/swift/src/test.txt"
 
+// Storj full filename for deleting object
+var storjDeleteObject : NSString = "path/hellostorj.txt"
+// Storj bucekt name for deleting empty bucket
+var storjDeleteBucket : NSString = "macbucket12"
 
 // Create an object of the Storj-Swift bindings, so as to access functions.
 var lO_libUplinkSwift = libUplinkSwift()
@@ -57,42 +61,327 @@ if uplinkError == "" {
             } else {
                 print("New Bucket: CREATED!")
             }
+            // Listing bucket
+            print("Listing Buckets...")
+            //
+            var lO_BucketListOptions = BucketListOptions()
+            //
+            var (lO_BucketList, bucketListError) = lO_libUplinkSwift.listBuckets(lO_ProjectRef: lO_ProjectRef, lO_BucketListOption: &lO_BucketListOptions)
+            //
+            if bucketListError.isEqual(to: "") {
+                if lO_BucketList.length-1 > 0 {
+                    print("Sl.No\t Bucket Name \t\t\t\t\t\t Bucket created")
+                    for index in 0...lO_BucketList.length-1 {
+                        var bucketName :NSString = ""
+                        //
+                        let unixdate = lO_BucketList.items?[Int(index)].created
+                        //
+                        if let bucketNameCstring = lO_BucketList.items?[Int(index)].name {
+                            bucketName = String(cString: bucketNameCstring) as NSString
+                        }
+                        print(index+1,"\t\t",bucketName,"\t\t\t\t\t\t",unixdate)
+                    }
+                }
+            } else {
+                print("FAILed to list buckets!")
+                print(bucketListError)
+            }
+            // free the memory , dynamically allocated by the c library
+            var buckeListPtr = UnsafeMutablePointer<BucketList>(&lO_BucketList)
+            //
+            lO_libUplinkSwift.freeBucketList(bucketListPointer: buckeListPtr)
+            //
             print("Accessing given Encryption Phasshrase...")
             //
             let (ptrSerializedAccess, encryptionKeyError) = lO_libUplinkSwift.getEncryptionAccess(lO_projectRef: lO_ProjectRef, encryptionPassphrase: storjEncryptionPassphrase)
             //
             if ptrSerializedAccess != nil {
+                //
                 print("Encryption Access: RECEIVED!\nOpening ", storjBucket, " Bucket...")
                 //
                 let (lO_OpenBucket, openBucketError) = lO_libUplinkSwift.openBucket(lO_projectRef: lO_ProjectRef, bucket: storjBucket, ptrSerialAccess: ptrSerializedAccess)
                 //
                 if openBucketError == "" {
                     print(storjBucket, " Bucket: OPENED!", "\nUploading ", localFullFileNameToUpload, "file to the Storj Bucket...")
-                    //
-                    let uploadError = lO_libUplinkSwift.uploadFile(lO_bucketRef: lO_OpenBucket,  storjUploadPath: storjUploadPath, localFullFileNameToUpload: localFullFileNameToUpload)
-                    //
-                    if uploadError == "" {
-                        //
-                        print(localFullFileNameToUpload, " FILE : UPLOADED as ", storjUploadPath, " file...")
-                        //
-                        print("Downloading ", storjUploadPath, " Storj Object as ", localFullFileLocationToStore, " file...")
-                        let downloadError = lO_libUplinkSwift.downloadFile(lO_bucketRef: lO_OpenBucket,  storjFullFilename: storjDownloadPath, localFullFilename: localFullFileLocationToStore)
-                        //
-                        if downloadError != "" {
-                            print("FAILed to download ", localFullFileLocationToStore, "object from the storj bucket")
-                            print(downloadError)
+                    // as an example of 'put' , lets read and upload a local file
+                    if ((!storjUploadPath.isEqual(to: "")) && (!localFullFileNameToUpload.isEqual(to: ""))) {
+                        let fileManger = FileManager.default
+                        // Check if file exits or not on localsystem
+                        if fileManger.fileExists(atPath: localFullFileNameToUpload as String) {
+                            // If file is readable or not
+                           if fileManger.isReadableFile(atPath: localFullFileNameToUpload as String) {
+                            // File is readable
+                            do {
+                                let fileDetails = try fileManger.attributesOfItem(atPath: localFullFileNameToUpload as String)
+                                //
+                                let totalFileSizeInBytes = fileDetails[FileAttributeKey.size] as! Int
+                                //
+                                var totalBytesRead = 0;
+                                //
+                                let fileHandle = FileHandle(forReadingAtPath: localFullFileNameToUpload as String)
+                                //
+                                if fileHandle != nil {
+                                    //
+                                    var sizeToWrite = 0
+                                    //
+                                    let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjUploadPath.utf8String)
+                                    //
+                                    var lO_uploadOption = UploadOptions()
+                                    //
+                                    lO_uploadOption.expires = 1569709908
+                                    //
+                                    let lO_uploadPathPtr = UnsafeMutablePointer<UploadOptions>(&lO_uploadOption)
+                                    //
+                                    print("Calling Upload function")
+                                    //
+                                    let (lO_Uploader,uploaderError) = lO_libUplinkSwift.Upload(lO_bucketRef: lO_OpenBucket, storjUploadPath: storjUploadPath, localFullFileNameToUpload: localFullFileNameToUpload, lO_uploadPathPtr :lO_uploadPathPtr)
+                                    
+                                    if !uploaderError.isEqual(to: "") {
+                                        //
+                                        print("FAILed to create uploader \nstorjUploadpath : ",storjUploadPath,"\nlocalFullFilename to upload :",localFullFileNameToUpload)
+                                        //
+                                        print(uploaderError)
+                                        
+                                    } else {
+                                        while (totalBytesRead<totalFileSizeInBytes) {
+                                                if (totalFileSizeInBytes-totalBytesRead > 256) {
+                                                    sizeToWrite = 256
+                                                } else {
+                                                    sizeToWrite = totalFileSizeInBytes-totalBytesRead
+                                                }
+                                                if sizeToWrite == 0 {
+                                                    break
+                                                }
+                                                // Reading data from the file for uploading on storj V3
+                                                let data = fileHandle?.readData(ofLength: sizeToWrite)
+                                                //
+                                                var dataInUint = [UInt8](data.map{$0}!)
+                                                //
+                                                let ptrdataInUint = UnsafeMutablePointer<UInt8>(&dataInUint)
+                                                //
+                                                var (dataUploadedOnStorj, uploadWriterError) = lO_libUplinkSwift.UploadWrite(uploaderRef: lO_Uploader, ptrdataInUint: ptrdataInUint, sizeToWrite: sizeToWrite)
+                                                if uploadWriterError != "" {
+                                                    print(uploadWriterError)
+                                                    break
+                                                }
+                                                //
+                                                totalBytesRead += sizeToWrite
+                                            }
+                                            print("Calling upload commit function")
+                                            let uploadCommitError = lO_libUplinkSwift.UploadCommit(uploaderRef: lO_Uploader)
+                                                
+                                            if uploadCommitError != "" {
+                                                print("Error recieved by commiting upload")
+                                                print(uploaderError)
+                                            } else {
+                                                
+                                                print(localFullFileNameToUpload, " FILE : UPLOADED as ", storjUploadPath, " file...")
+                                                print("Downloading ", storjDownloadPath, " Storj Object as ", localFullFileLocationToStore, " file...")
+                                                
+                                                if((!storjDownloadPath.isEqual(to: "")) && (!localFullFileLocationToStore.isEqual(to: ""))) {
+                                                    //
+                                                    print("Calling download function")
+                                                    //
+                                                    let (lO_downloader,downloaderError) = lO_libUplinkSwift.Download(lO_bucketRef : lO_OpenBucket,storjFullFilename : storjDownloadPath)
+                                                    if downloaderError.isEqual(to: "") {
+                                                        let fileManger = FileManager.default
+                                                        // Checking file already exits or not
+                                                        if fileManger.fileExists(atPath: localFullFileLocationToStore as String) {
+                                                        // If file exits then delete
+                                                        if fileManger.isDeletableFile(atPath: localFullFileLocationToStore as String) {
+                                                            do {
+                                                                 var result = try fileManger.removeItem(atPath: localFullFileLocationToStore as String)
+                                                            } catch {
+                                                                    print ("Error while deleting already existing file.")
+                                                                }
+                                                            } else {
+                                                                print ("File is not deletableFile.")
+                                                            }
+                                                            if !fileManger.createFile(atPath: localFullFileLocationToStore as String, contents: nil, attributes: nil) {
+                                                                print ("Error while creating file on local system.")
+                                                            }
+                                                            if fileManger.isWritableFile(atPath: localFullFileLocationToStore as String) {
+                                                                var writehandel = FileHandle(forWritingAtPath: localFullFileLocationToStore as String)
+                                                                //
+                                                                if writehandel != nil{
+                                                                    //
+                                                                    let size_to_write = 256
+                                                                    //
+                                                                    var download_total = 0
+                                                                    //
+                                                                    var buff = Data(capacity: 256)
+                                                                    //
+                                                                    while true {
+                                                                    //
+                                                                    var sizeOfFile = 256
+                                                                    //
+                                                                    var receivedDataArray : [UInt8] = Array(repeating: 0, count: size_to_write)
+                                                                    //
+                                                                    let ptrtoreceivedData = UnsafeMutablePointer<UInt8>(&receivedDataArray)
+                                                                    //
+                                                                    var (downloadedData,downReaderError) = lO_libUplinkSwift.downloadRead(lO_downloader: lO_downloader, ptrtoreceivedData: ptrtoreceivedData, size_to_write: sizeToWrite)
+                                                                        if downloadedData == 0 {
+                                                                            break
+                                                                        }
+                                                                        if downloadedData < 256 {
+                                                                                receivedDataArray.removeSubrange(downloadedData..<256)
+                                                                        }
+                                                                        
+                                                                        if downloaderError != "" {
+                                                                            print(downloaderError)
+                                                                            break
+                                                                        }
+                                                                        download_total += size_to_write
+                                                                        //
+                                                                        buff.append(contentsOf: receivedDataArray)
+                                                                        //
+                                                                        var resultwrite = writehandel?.write((buff))
+                                                                        //
+                                                                        buff.removeAll()
+                                                                    }
+                                                                    //
+                                                                    if writehandel != nil{
+                                                                        writehandel?.closeFile()
+                                                                    }
+                                                                    var downloadCloseError = lO_libUplinkSwift.downloadClose(lO_downloader :lO_downloader)
+                                                                    if downloadCloseError != "" {
+                                                                         print("FAILed to download ", localFullFileLocationToStore, "object from the storj bucket")
+                                                                        print(downloadCloseError)
+                                                                    } else {
+                                                                        print("Download complete")
+                                                                    }
+                                                                    
+                                                                }
+                                                            }
+                                                        }
+                                                
+                                                        
+                                                    } else {
+                                                        print(downloaderError)
+                                                    }
+                                                }else {
+                                                    if (storjDownloadPath.isEqual(to: "")) {
+                                                        print("Plese enter storjFullFilename for downloading object.\n")
+                                                        
+                                                    }
+                                                    if (localFullFileLocationToStore.isEqual(to: "")) {
+                                                        print("Please enter localFullFilename for downloading object")
+                                                    }
+                                                }
+                                                //print("Calling Download function")
+                                            }
+                                        }
+                                    } else {
+                                        print("file handle nil")
+                                }
+                            } catch {
+                                print("Error while reading filesize.")
+                            }
+                            
+                           } else {
+                                print("File : ",localFullFileNameToUpload,"\n . File is not readable")
+                            }
                         } else {
-                            print("Storj Bucket's ", storjUploadPath, " object Downloaded as ", localFullFileLocationToStore, " file!")
+                            print("File : ",localFullFileNameToUpload," \n . File does not exists. Please enter valid filename.")
                         }
+                    } else {
+                        if storjUploadPath.isEqual(to: "") {
+                            print("Please enter valid storjPath. \n")
+                        }
+                        if localFullFileNameToUpload.isEqual(to: "") {
+                            print("Please enter valid filename to upload.")
+                        }
+                    }
+                    print("Listing Objects without prefix")
+                    //
+                    var lO_ListOption = ListOptions()
+                    //
+                    let blank : NSString = ""
+                    //
+                    var ptrToblank = UnsafeMutablePointer<CChar>(mutating: blank.utf8String)
+                    //
+                    lO_ListOption.prefix = ptrToblank
+                    lO_ListOption.cursor = ptrToblank
+                    lO_ListOption.delimiter = (Int8(" ") ?? 32)!
+                    lO_ListOption.recursive = false
+                    lO_ListOption.direction = ListDirection(rawValue: 1)
+                    lO_ListOption.limit = 0
+                    
+                    var (lO_ObjectList,listObjectError) = lO_libUplinkSwift.listObjects(lO_bucketRef: lO_OpenBucket,lO_ListOption: &lO_ListOption)
+                     //
+                    if listObjectError != "" {
+                        print("FAILed to list Object")
+                        print(listObjectError)
                         
                     } else {
-                        print("FAILed to upload ", localFullFileNameToUpload , " object from the Storj bucket!")
-                        print(uploadError)
+                        
+                        if lO_ObjectList.length > 0 {
+                            print("Sl.No\t Object Name\t\t\t\t\t\t Created")
+                            for index in 0...lO_ObjectList.length-1 {
+                                var objectName :NSString = ""
+                                //
+                                let unixdate = lO_ObjectList.items?[Int(index)].created
+                                //
+                                if let objectString = lO_ObjectList.items?[Int(index)].path {
+                                    objectName = String(cString: objectString) as NSString
+                                }
+                                print(index+1,"\t\t",objectName,"\t\t\t\t\t\t",unixdate)
+                            }
+                        }
+                        let objectListPtr = UnsafeMutablePointer<ObjectList>(&lO_ObjectList)
+                        //
+                        lO_libUplinkSwift.freeObjectList(objectListPointer: objectListPtr)
                     }
+                    //
+                    print("Listing Object with prefix")
+                    //
+                    let prefix : NSString = "path"
+                    //
+                    var ptrToPrefix = UnsafeMutablePointer<CChar>(mutating: prefix.utf8String)
+                    //
+                    lO_ListOption.prefix = ptrToPrefix
+                    (lO_ObjectList,listObjectError) = lO_libUplinkSwift.listObjects(lO_bucketRef: lO_OpenBucket,lO_ListOption: &lO_ListOption)
+                    //
+                    if listObjectError != "" {
+                      print("FAILed to list bucket with object")
+                      print(listObjectError)
+                    } else {
+                        if lO_ObjectList.length > 0 {
+                            print("Sl.No\t Object Name\t\t\t\t\t\t Created")
+                            for index in 0...lO_ObjectList.length-1 {
+                                var objectName :NSString = ""
+                                //
+                                let unixdate = lO_ObjectList.items?[Int(index)].created
+                                //
+                                if let errorCstring = lO_ObjectList.items?[Int(index)].path {
+                                    objectName = String(cString: errorCstring) as NSString
+                                }
+                                print(index+1,"\t",objectName,"\t\t\t\t\t\t",unixdate)
+                            }
+                    
+                        }
+                        var objectListPtr = UnsafeMutablePointer<ObjectList>(&lO_ObjectList)
+                        //
+                        lO_libUplinkSwift.freeObjectList(objectListPointer: objectListPtr)
+                        
+                    }
+                    //
+                    
+                    print("\nDeleting Object\n")
+                    //
+                    var deleteObjectError = lO_libUplinkSwift.deleteObject(lO_bucketRef: lO_OpenBucket, storjObjectPath: storjUploadPath)
+                    //
+                    if deleteObjectError.isEqual(to: "") {
+                        print("Object :",storjUploadPath,"sucessfully deleted ")
+                    } else {
+                        print("FAILed to delete Object : ",storjUploadPath)
+                        print(deleteObjectError)
+                    }
+                    
                     //
                     print("Closing the Opened Bucket...")
                     let closeBucketError = lO_libUplinkSwift.closeBucket(lO_bucketRef: lO_OpenBucket)
-                    if closeBucketError != "" {
+                    if !closeBucketError.isEqual(to: "") {
                         print("FAILed to close desired bucket!")
                         print(closeBucketError)
                     } else {
@@ -106,9 +395,23 @@ if uplinkError == "" {
                 print("FAILed to get encryption access from given passphrase")
                 print(encryptionKeyError)
             }
+            
+            print("Deleting bucket :",storjBucket)
             //
+            var deleteBucketError = lO_libUplinkSwift.deleteBucket(lO_ProjectRef: lO_ProjectRef, bucketName: storjBucket)
+            //
+            if deleteBucketError.isEqual(to: "") {
+                print("Bucket : ",storjBucket," Deleted successfully")
+            } else {
+                print("FAILed to delete bucket :",storjBucket)
+                print(deleteBucketError)
+            }
+            //
+            
             print("Closing the opened Storj Project...")
+            //
             let closeProjectError = lO_libUplinkSwift.closeProject(lO_projectRef: lO_ProjectRef)
+            //
             if closeProjectError != "" {
                 print("FAILed to close the project!")
                 print(closeProjectError)

@@ -10,7 +10,7 @@ import Foundation
 public struct libUplinkSwift {
     public init(){}
     /*
-     * newUplink function creates a new Storj uplink.
+     * function to create new Storj uplink
      * pre-requisites: none
      * inputs: none
      * output: returns Uplink and error (NSString)
@@ -35,10 +35,10 @@ public struct libUplinkSwift {
     }
     
     /*
-     * function to close currently opened uplink
+     * function to close currently open uplink
      * pre-requisites: newUplink() function has been already called
      * inputs: Uplink
-     * output: returns error (string)
+     * output: returns error (NSString)
      */
     mutating public func closeUplink(lO_uplinkRef :Uplink)-> NSString {
         var error : NSString = ""
@@ -56,10 +56,10 @@ public struct libUplinkSwift {
 
     
     /*
-     * parseAPIKey function parses the API key, to be used by Storj.
+     * function to parse API key, to be used by Storj
      * pre-requisites: none
      * inputs: API key (NSString)
-     * output: returns APIKey nad error (string)
+     * output: returns APIKey nad error (NSString)
      */
     mutating public func parseAPIKey(apiKey :NSString)-> (APIKey, NSString) {
         var error : NSString = ""
@@ -82,7 +82,7 @@ public struct libUplinkSwift {
      * pre-requisites: uplink() and parseAPIKey() functions have been already called
      * inputs: Uplink, Satellite Address (NSString), APIKey
      * output: returns Project, error (NSString)
-    */
+     */
     mutating public func openProject(lO_uplinkRef :Uplink , satellite :NSString, lO_parsedAPIKeyRef :APIKey) -> (Project, NSString) {
         var error : NSString = ""
         // Creating pointer to error
@@ -99,10 +99,10 @@ public struct libUplinkSwift {
     }
     
     /*
-     * function to close currently opened Storj project
+     * function to close currently open Storj project
      * pre-requisites: openProject() function has been already called
      * inputs: Project
-     * output: returns error (string)
+     * output: returns error (NSString)
      */
     mutating public func closeProject(lO_projectRef :Project) -> NSString {
         var error : NSString = ""
@@ -117,7 +117,6 @@ public struct libUplinkSwift {
         //
         return error
     }
-
     
     /*
      * function to create a new bucket in Storj project
@@ -152,7 +151,7 @@ public struct libUplinkSwift {
      * function to get encryption access to upload and download data on Storj
      * pre-requisites: openProject() function has been already called
      * inputs: Project, Encryption Pass Phrase (NSString)
-     * output: returns Serialized Encryption Access (UnsafeMutablePointer<Int8>?) and error (String); if it fails, nil Pointer is returned
+     * output: returns Serialized Encryption Access (UnsafeMutablePointer<Int8>?) and error (NSString); if it fails, nil Pointer is returned
      */
     mutating public func getEncryptionAccess(lO_projectRef :Project, encryptionPassphrase :NSString)-> (UnsafeMutablePointer<Int8>?, NSString) {
         var error : NSString = ""
@@ -198,8 +197,8 @@ public struct libUplinkSwift {
      * function to open an already existing bucket in Storj project
      * pre-requisites: getEncryptionAccess() function has been already called
      * inputs: Project, Bucket Name (NSString), Serialized Encryption Access (UnsafeMutablePointer<Int8>?)
-     * output: returns Bucket and error (string)
-    */
+     * output: returns Bucket and error (NSString)
+     */
     mutating public func openBucket(lO_projectRef :Project, bucket :NSString, ptrSerialAccess :UnsafeMutablePointer<Int8>?)-> (Bucket, NSString) {
         var error : NSString = ""
         // Creating pointer to array
@@ -219,12 +218,51 @@ public struct libUplinkSwift {
         //
         return (lO_bucketRef, error)
     }
-      
     /*
-     * function to close currently opened Bucket
+     * function to list all the buckets in a Storj project
+     * pre-requeisites: openProject() function has been already called
+     * inputs: Project, address of BucketListOptions
+     * output: returns BucketList and error (NSString)
+     */
+     mutating public func listBuckets(lO_ProjectRef: Project, lO_BucketListOption: inout BucketListOptions)->(BucketList, NSString) {
+         var error : NSString = ""
+         // Creating pointer to error
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         var bucketListOptionPtr = UnsafeMutablePointer<BucketListOptions>(&lO_BucketListOption)
+         //
+         var lO_listBucket = list_buckets(lO_ProjectRef, bucketListOptionPtr, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         return (lO_listBucket, error)
+     }
+    
+    /*
+     * function to free Bucket list
+     * pre-requeisites: listBucket() function has been already called
+     * inputs: Pointer to BucketList (UnsafeMutablepointer<BucketList>)
+     * output: returns error (NSString)
+     */
+     mutating public func freeBucketList(bucketListPointer :UnsafeMutablePointer<BucketList>)-> NSString {
+         var error : NSString = ""
+         // Creating pointer to error
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         free_bucket_list(bucketListPointer)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         return (error)
+     }
+    
+    /*
+     * function to close currently open Bucket
      * pre-requisites: openBucket() function has been already called, successfully
      * inputs: Bucket
-     * output: returns error (string)
+     * output: returns error (NSString)
      */
     mutating public func closeBucket(lO_bucketRef :Bucket) -> NSString {
         var error : NSString = ""
@@ -239,13 +277,222 @@ public struct libUplinkSwift {
         return error
     }
 
+   /*
+    * function to delete a empty bucket
+    * pre-requeisites: openBucket() function has been already called
+    * inputs: Project, Storj Bucket Name (NSString)
+    * output: returns BucketList and error (NSString)
+    */
+    mutating public func deleteBucket(lO_ProjectRef :Project,bucketName :NSString)-> NSString {
+        var error : NSString = ""
+        // Creating pointer to error
+        var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+        //
+        var bucketNamePtr = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
+        //
+        delete_bucket(lO_ProjectRef, bucketNamePtr, &errorPtr)
+        //
+        if let errorCstring = errorPtr {
+            error = String(cString: errorCstring) as NSString
+        }
+        return (error)
+        
+    }
+    /*
+     * function to list object in desired bucket
+     * pre-requeisites: openBucket() function has been already called
+     * inputs: Bucket, address of ListOptions
+     * output: returns ObjectList and error (NSString)
+     */
+     mutating public func listObjects(lO_bucketRef :Bucket,lO_ListOption : inout ListOptions) -> (ObjectList,NSString) {
+        var error : NSString = ""
+         // Creating pointer to error
+        var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+        let listOptionPtr = UnsafeMutablePointer<ListOptions>(&lO_ListOption)
+         //
+        let lO_listObject = list_objects(lO_bucketRef, listOptionPtr, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return (lO_listObject,error)
+     }
+     
+    /*
+     * function to delete an object in a bucket
+     * pre-requeisites: openBucket() function has been already called
+     * inputs: Bucket, Storj Path/File Name (NSString)
+     * output: returns BucketList and error (NSString)
+     */
+     mutating public func deleteObject(lO_bucketRef :Bucket ,storjObjectPath :NSString)-> NSString {
+         var error : NSString = ""
+         // Creating pointer to error
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         var objectPathPtr = UnsafeMutablePointer<CChar>(mutating: storjObjectPath.utf8String)
+         //
+         delete_object(lO_bucketRef, objectPathPtr, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         return (error)
+     }
+     
+    /*
+     * function to free ObjectList
+     * pre-requeisites: listObject() function has been already called
+     * inputs: Pointer to ObjectList (UnsafeMutablepointer<ObjectList>)
+     * output: returns error (NSString)
+     */
+     mutating public func freeObjectList(objectListPointer :UnsafeMutablePointer<ObjectList>)-> NSString {
+         var error : NSString = ""
+         // Creating pointer to error
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         free_list_objects(objectListPointer)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return error
+     }
+     
+    /*
+     * function to get uploader handle used to upload data to Storj (V3) bucket's path
+     * pre-requeisites: openBucket function has been already called
+     * inputs: Bucket, Storj Path/File Name (NSString) within opened bucket, local Source Full File Name (NSString)
+     * output: returns Uploder and error (NSString)
+     */
+     mutating public func Upload(lO_bucketRef :Bucket, storjUploadPath :NSString,  localFullFileNameToUpload :NSString, lO_uploadPathPtr :UnsafeMutablePointer<UploadOptions>)->(Uploader , NSString) {
+         //
+         var error : NSString = ""
+         // Creating pointer to error
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjUploadPath.utf8String)
+         //
+         var uploaderRef = upload(lO_bucketRef, ptrStorjPath, lO_uploadPathPtr, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return (uploaderRef,error)
+     }
+     
+    /*
+     * function to write data to Storj (V3) bucket's path
+     * pre-requeisites: Upload function has been already called
+     * inputs: Uploader, Pointer to bytes array (UnsafeMutablepointer<UInt8>) , sizeofbytesarray(Int)
+     * output: returns Size of data uploaded (Int) and error (NSString)
+     */
+     mutating public func UploadWrite(uploaderRef :Uploader, ptrdataInUint :UnsafeMutablePointer<UInt8>,sizeToWrite :Int)->(Int,NSString) {
+         //
+         var error : NSString = ""
+         //
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         var sizeOnStorj = upload_write(uploaderRef, ptrdataInUint, sizeToWrite, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return (sizeOnStorj,error)
+     }
+    
+    /*
+     * function to commit and finalize file for uploaded data to Storj (V3) bucket's path
+     * pre-requeisites: Upload function has been already called
+     * inputs: Uploader
+     * output: returns error (NSString)
+     */
+     mutating public func UploadCommit(uploaderRef :Uploader)->NSString {
+         var error : NSString = ""
+         //
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         upload_commit(uploaderRef, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return error
+     }
+     
+    /*
+     * function to get downloader handle to download Storj (V3) object's data and store it on local computer
+     * pre-requeisites: openBucket() function has been already called
+     * inputs: Bucket, Storj Path/File Name (NSString) within opened bucket, local Full File Name (NSString)
+     * output: returns Downloader and error (NSString)
+     */
+     mutating public func Download(lO_bucketRef :Bucket,storjFullFilename :NSString)->(Downloader,NSString) {
+         var error : NSString = ""
+         //
+         // Creating pointer to string
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         let storjFullFilenamePointer = UnsafeMutablePointer<CChar>(mutating: storjFullFilename.utf8String)
+         //
+         let downloader = download(lO_bucketRef, storjFullFilenamePointer, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         return (downloader,error)
+     }
+     
+    /*
+     * function to read Storj (V3) object's data and return the data
+     * pre-requeisites: Download function has been already called
+     * inputs: Downloader, Pointer to bytes array (UnsafeMutablepointer<UInt8>) , sizeofbytesarray(Int)
+     * output: returns Size of downloaded data (Int) and error (NSString)
+     */
+     mutating public func downloadRead(lO_downloader :Downloader, ptrtoreceivedData: UnsafeMutablePointer<UInt8>,size_to_write :Int)->(Int, NSString) {
+         var error : NSString = ""
+         //
+         // Creating pointer to string
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         var downloaddata = download_read(lO_downloader, ptrtoreceivedData, size_to_write, &errorPtr)
+         
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         //
+         return (downloaddata,error)
+     }
+     
+     /*
+      * function to close downloader after completing the data read process
+      * pre-requeisites: Download function has been already called
+      * inputs: Downloader
+      * output: returns error (NSString)
+      */
+     mutating public func downloadClose(lO_downloader :Downloader)->NSString {
+         var error : NSString = ""
+         // Creating pointer to string
+         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
+         //
+         download_close(lO_downloader, &errorPtr)
+         //
+         if let errorCstring = errorPtr {
+             error = String(cString: errorCstring) as NSString
+         }
+         return error
+     }
     
     /* function to upload data from localFullFileNameToUpload (at local system) to Storj (V3) bucket's path
      * pre-requeisites: openBucket() function has been already called
-     * inputs: Bucket, Storj Path/File Name (string) within opened bucket, local Source Full File Name (String)
-     * output: error (string)
+     * inputs: Bucket, Storj Path/File Name (NSString) within opened bucket, local Source Full File Name (NSString)
+     * output: returns error (NSString)
      */
-    mutating public func uploadFile(lO_bucketRef :Bucket, storjUploadPath :NSString,  localFullFileNameToUpload :NSString) -> NSString {
+    mutating func uploadFile(lO_bucketRef :Bucket, storjUploadPath :NSString,  localFullFileNameToUpload :NSString) -> NSString {
         //
         var error : NSString = ""
         //
@@ -307,7 +554,8 @@ public struct libUplinkSwift {
                                 //
                                 var uploaderPtr = UnsafeMutablePointer<Uploader>(&uploaderRef)
                                 // Saving data in UInt8 array from Data type
-                                var dataInUint = [UInt8](buff.map{$0})
+                                //
+                                var dataInUint = [UInt8](data.map{$0}!)
                                 //
                                 let ptrdataInUint = UnsafeMutablePointer<UInt8>(&dataInUint)
                                 //
@@ -362,12 +610,12 @@ public struct libUplinkSwift {
         return error
     }
     
-    /* function to download Storj (V3) object's data and store it in given file with localFullFilename (on local system)
+   /* function to download Storj (V3) object's data and store it in given file with localFullFilename (on local system)
     * pre-requeisites: openBucket() function has been already called
-    * inputs: Bucket, Storj Path/File Name (string) within opened bucket, local Full File Name (String)
-    * output: error (string)
+    * inputs: Bucket, Storj Path/File Name (NSString) within opened bucket, local Full File Name (NSString)
+    * output: returns error (NSString)
     */
-    mutating public func downloadFile(lO_bucketRef :Bucket, storjFullFilename :NSString, localFullFilename :NSString) -> NSString {
+    mutating func downloadFile(lO_bucketRef :Bucket, storjFullFilename :NSString, localFullFilename :NSString) -> NSString {
         var error : NSString = ""
         // Creating pointer to string
         var errorPtr = UnsafeMutablePointer<CChar>(mutating: error.utf8String)
@@ -463,12 +711,8 @@ public struct libUplinkSwift {
                     //
                     var sizeOfFile = Int(objectmeta.size)
                     //
-                    while download_total < objectmeta.size {
-                        if (sizeOfFile-download_total<256) {
-                            size_to_write = sizeOfFile-download_total
-                        } else {
-                            size_to_write = 256
-                        }
+                    while true {
+                        sizeOfFile = 256
                         // Creating array for receving data from golang
                         var receivedDataArray : [UInt8] = Array(repeating: 0, count: size_to_write)
                         // Creating pointer
@@ -478,6 +722,12 @@ public struct libUplinkSwift {
                         //
                         if let errorCstring = errorPtr {
                             error = String(cString: errorCstring) as NSString
+                        }
+                        //
+                        receivedDataArray.removeSubrange(downloaddata..<256)
+                        //
+                        if downloaddata == 0 {
+                            break
                         }
                         //
                         if error != "" {
@@ -530,4 +780,7 @@ public struct libUplinkSwift {
             return error
         }
     }
+
+
+    
 }
