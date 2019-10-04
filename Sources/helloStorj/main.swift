@@ -4,41 +4,44 @@
 //
 
 import Foundation
-import storj
+import storj_swift
+import Clibuplink
+
 
 
 /* Storj V3 network configuration parameters */
 //
 // API key
-var storjApiKey : NSString = "13Yqf9SJhb9ApNZQdY2H4h47pacMyQeAtGafLUygWhTuugCU17P5BffEZveFnP8ivv2dsrWFaKPZJnRupHHgkw9abTw3hzxpHt2td5Y"
+var storjApiKey : NSString = "change-me-to-the-api-key-created-in-satellite-gui"
 // Satellite address
 var storjSatellite : NSString = "us-central-1.tardigrade.io:7777"
 // Encryption passphrase
-var storjEncryptionPassphrase : NSString = "test"
+var storjEncryptionPassphrase : NSString = "you'll never guess this"
 // Bucket name
-var storjBucket : NSString = "macbucket12"
+var storjBucket : NSString = "change-me-to-desired-bucket-name"
 //
 // Upload path within the bucket, whereto the sample message is to be uploaded.
-var storjUploadPath : NSString = "path/hellostorj.txt"
+var storjUploadPath : NSString = "optionalpath/requiredfilename"
 // Download path within the bucket, wherefrom the Storj object is to be downloaded.
-var storjDownloadPath : NSString = "path/hellostorj.txt"
+var storjDownloadPath : NSString = "optionalpath/requiredfilename"
 
 // Full file name, including path, of the local system, to be uploaded to Storj bucket.
-var localFullFileNameToUpload : NSString = "/Users/webwerks/swift/src/storj-swift/sample.txt"
+var localFullFileNameToUpload : NSString = "optionalpath/requiredfilename"
 // Local full path, where the Storj object is to be stored after download.
-var localFullFileLocationToStore : NSString = "/Users/webwerks/swift/src/test.txt"
+var localFullFileLocationToStore : NSString = "optionalpath/requiredfilename"
 
 // Storj full filename for deleting object
-var storjDeleteObject : NSString = "path/hellostorj.txt"
+var storjDeleteObject : NSString = "optionalpath/requiredfilename"
 // Storj bucekt name for deleting empty bucket
-var storjDeleteBucket : NSString = "macbucket12"
+var storjDeleteBucket : NSString = "hange-me-to-desired-bucket-name"
 
 // Create an object of the Storj-Swift bindings, so as to access functions.
-var lO_libUplinkSwift = libUplinkSwift()
+var lO_libUplinkSwift = libUplinkSwift("")
 
 print("Setting-up a New Uplink...")
 // Create a new uplink.
-let (lO_uplinkRef, uplinkError) = lO_libUplinkSwift.newUplink()
+// Create an object of the Storj-Swift bindings, so as to access functions.
+let (lO_uplinkRef, uplinkError) = lO_libUplinkSwift.Uplink()
 //
 if uplinkError == "" {
     print("New Uplink: SET-UP!\nParsing the API Key: ", storjApiKey)
@@ -48,8 +51,9 @@ if uplinkError == "" {
     if parseAPIKeyError == "" {
         print("API key: PARSED!\nOpening the Storj Project from Satellite: ", storjSatellite)
         //
-        let (lO_ProjectRef, openProjectError) = lO_libUplinkSwift.openProject(lO_uplinkRef: lO_uplinkRef, satellite: storjSatellite, lO_parsedAPIKeyRef: lO_parseAPIKeyRef)
+        let (lO_ProjectRef, openProjectError) = lO_libUplinkSwift.openProject(uplinkRef: lO_uplinkRef, satellite: storjSatellite, parsedAPIRef: lO_parseAPIKeyRef)
         //
+        
         if openProjectError == "" {
             print("Desired Storj Project: OPENED!\nCreating a new bucket with name, ", storjBucket, " ...")
             //
@@ -61,6 +65,7 @@ if uplinkError == "" {
             } else {
                 print("New Bucket: CREATED!")
             }
+            
             // Listing bucket
             print("Listing Buckets...")
             //
@@ -86,24 +91,35 @@ if uplinkError == "" {
                 print("FAILed to list buckets!")
                 print(bucketListError)
             }
+            
             // free the memory , dynamically allocated by the c library
-            var buckeListPtr = UnsafeMutablePointer<BucketList>(&lO_BucketList)
+            var lO_BuckeListPtr = UnsafeMutablePointer<BucketList>(&lO_BucketList)
             //
-            lO_libUplinkSwift.freeBucketList(bucketListPointer: buckeListPtr)
+            var errorFreeBucketList = lO_libUplinkSwift.freeBucketList(bucketListPtr: lO_BuckeListPtr)
+            //
+            if !errorFreeBucketList.isEqual(to: "") {
+                print("FAILed to free bucket list")
+            } else {
+                print("Freed bucket List !")
+            }
+            
             //
             print("Accessing given Encryption Phasshrase...")
             //
-            let (ptrSerializedAccess, encryptionKeyError) = lO_libUplinkSwift.getEncryptionAccess(lO_projectRef: lO_ProjectRef, encryptionPassphrase: storjEncryptionPassphrase)
+            let (ptrSerializedAccess, encryptionKeyError) = lO_libUplinkSwift.getEncryptionAccess(lO_ProjectRef: lO_ProjectRef, encryptionPassphrase: storjEncryptionPassphrase)
             //
             if ptrSerializedAccess != nil {
                 //
                 print("Encryption Access: RECEIVED!\nOpening ", storjBucket, " Bucket...")
                 //
-                let (lO_OpenBucket, openBucketError) = lO_libUplinkSwift.openBucket(lO_projectRef: lO_ProjectRef, bucket: storjBucket, ptrSerialAccess: ptrSerializedAccess)
-                //
+                
+                let (lO_OpenBucket, openBucketError) = lO_libUplinkSwift.openBucket(lO_ProjectRef: lO_ProjectRef, bucketName: storjBucket, ptrSerialAccess: ptrSerializedAccess)
+                
+                
                 if openBucketError == "" {
                     print(storjBucket, " Bucket: OPENED!", "\nUploading ", localFullFileNameToUpload, "file to the Storj Bucket...")
                     // as an example of 'put' , lets read and upload a local file
+                    
                     if ((!storjUploadPath.isEqual(to: "")) && (!localFullFileNameToUpload.isEqual(to: ""))) {
                         let fileManger = FileManager.default
                         // Check if file exits or not on localsystem
@@ -377,10 +393,10 @@ if uplinkError == "" {
                         print("FAILed to delete Object : ",storjUploadPath)
                         print(deleteObjectError)
                     }
-                    
+                   
                     //
                     print("Closing the Opened Bucket...")
-                    let closeBucketError = lO_libUplinkSwift.closeBucket(lO_bucketRef: lO_OpenBucket)
+                    let closeBucketError = lO_libUplinkSwift.closeBucket(lO_BucketRef: lO_OpenBucket)
                     if !closeBucketError.isEqual(to: "") {
                         print("FAILed to close desired bucket!")
                         print(closeBucketError)
@@ -391,6 +407,7 @@ if uplinkError == "" {
                     print("FAILed to open desired bucket!")
                     print(openBucketError)
                 }
+                
             } else {
                 print("FAILed to get encryption access from given passphrase")
                 print(encryptionKeyError)
@@ -418,21 +435,25 @@ if uplinkError == "" {
             } else {
                 print("Storj Project: CLOSED!")
             }
+            
         } else {
             print("FAILed to open desired Storj project!")
             print(openProjectError)
         }
+        
     } else {
         print("FAILed to parse the API key!")
         print(parseAPIKeyError)
     }
     //
     print("Closing the established Storj Uplink...")
+    
     let closeUplinkError = lO_libUplinkSwift.closeUplink(lO_uplinkRef: lO_uplinkRef)
     if closeUplinkError != "" {
         print("FAILed to close uplink")
         print(closeUplinkError)
     }
+    
 } else {
     print("FAILed to set-up a new uplink!")
     print(uplinkError)

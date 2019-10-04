@@ -14,70 +14,33 @@ Install [storj-uplink](https://godoc.org/storj.io/storj/lib/uplink) go package, 
 $ go get storj.io/storj/lib/uplink
 ```
 
-**NOTE**: Please ensure that the Xcode software is installed on your system, so as to build the binding from source.
+In case, following errors get reported during the process:
+```
+go/src/github.com/zeebo/errs/errs.go:42:9: undefined: errors.Unwrap
+go/src/github.com/zeebo/errs/group.go:84:6: undefined: errors.Is
+```
+please arrange for the module dependencies to be met, using the Go modules functionality.
+Reference: [ISSUE#3053: Getting error while downloading module](https://github.com/storj/storj/issues/3053#issuecomment-532883993)
+
+
+**NOTE**: for Swift
+
+* Please ensure that the Xcode software is installed on your system, so as to build the binding from source.
+* [Add the `storj-swift` package to your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app)
 
 
 ## Set-up Files
-
-* Create Project
-    * Open Xcode and go to **File/New/Project**. Find the **macOS** group, select **Application/Command Line Tool** and click **Next**
-    * Make sure that **Language** is set to **Swift**, then click **Next**
-    
-* Create Library in Swift Project
-    * In Xcode, again go to **File/New/Project**. Find the **macOS** group, select **Library** from Framework & Library section and click **Next**
-    * Enter a library name, *say*, "storj" and click **Next**
-    * Select a project name from **Add to** field and click on **Create**
-
-* Add Library in Swift Project
-    * **General > Frameworks and Libraries Section**
-    * Click on **+** icon and then search for name "lib" + library name created + ".dylib"
-    * Select .dylib file and click on **Add**
-    * **NOTE**: After adding the files, check the project's setting through **General > Frameworks and Libraries > Embed**
-
-* Using cmd/terminal, navigate to the ```$HOME/go/src/storj.io/storj/lib/uplinkc``` folder.
 
 * Create '.dylib' file at  ```$HOME/go/src/storj.io/storj/lib/uplinkc``` folder, by using following command:
 ```
 $ go build -v -o libuplinkc.dylib -buildmode=c-shared 
 ```
 
-* Copy *libuplinkc.dylib, libuplinkc.h, uplink_definitions.h, and Uplink.swift* files into the library's sub directory, that either has the same name as that of the library OR contains .h and .m files
-
-* Add *libuplinkc.dylib, libuplinkc.h, and uplink_definitions.h* files to the library's sub-directory, that has the same name as that of the library:
-    * Open the project in Xcode 
-    * Select the afore-mentioned sub directory in navigation bar by clicking on its name
-    * Click on the File menu
-    * Select option to **Add files to "Library Name"...**
-    * Navigate to the library location and add the above-mentioned files
-
-* Add *Uplink.swift* files to library:
-    * Open the project in Xcode
-    * Select folder name, same as library name, in the navigation bar by clicking on it
-    * Click on the File menu
-    * Select option **Add files to "Library Name"...** from the File menu
-    * Navigate to the library folder and add the above-mentioned file
-    * After adding the files to library, the Xcode will ask for *creating a bridging header*
-    * Click on create this bridging file
-    * Add following code in the bridging-header file:
-      * ```#import "libuplinkc.h"```
-    * Delete .h and .m files. with the same name as that of the library, from the library folder
-
-* Copy *main.swift* file into the project directory's sub-folder, which has the same name as that of the project
-
-* Add files to folder:
-    * In Xcode, select the sub-folder, with same name as that of the project, through navigation bar
-    * Click on the File menu
-    * Select option **Add files to "Project Name"...**
-    * Navigate to the project location and add these file
-
-**NOTE with regards to main.swift**:
-* Please give full file name, including absolute file location, which is to be uploaded to Storj, in the "localFullFileNameToUpload" variable
-* In order to write your own code, using the given bindings, please replace the contents of the *main.swift* file
-* Use import command to import the above library into your main file.
+* Copy *libuplinkc.dylib* file into the `storj-swift/Sources/Clibuplink/include` folder of the package
 
 
 ## Sample Hello Storj!
-The sample *main.swift* code calls the *UplinkSwift.swift* file and binding structure so as to do the following:
+The sample *main.swift* code in `storj-swift/Sources/helloStorj` folder calls the *storj_swift.swift* file, so as to do the following:
 * create a new bucket (if it does not exist) desired Storj project
 * lists all bucket in a Storj project
 * write a file from local system to the created/opened Storj bucket
