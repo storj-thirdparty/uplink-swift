@@ -19,6 +19,11 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 /* Start of preamble from import "C" comments.  */
 
 
+#line 6 "access_scope.go"
+ #include "uplink_definitions.h"
+
+#line 1 "cgo-generated-wrapper"
+
 #line 6 "apikey.go"
  #include "uplink_definitions.h"
 
@@ -34,11 +39,6 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 #line 1 "cgo-generated-wrapper"
 
-#line 6 "libuplinkc_custom.go"
- #include "uplink_definitions.h"
-
-#line 1 "cgo-generated-wrapper"
-
 #line 6 "object.go"
  #include "uplink_definitions.h"
 
@@ -48,7 +48,6 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
  #include "uplink_definitions.h"
 
 #line 1 "cgo-generated-wrapper"
-
 
 #line 6 "uplink.go"
  #include "uplink_definitions.h"
@@ -103,6 +102,38 @@ typedef struct { void *data; GoInt len; GoInt cap; } GoSlice;
 extern "C" {
 #endif
 
+
+// new_scope creates new Scope
+
+extern ScopeRef new_scope(char* p0, APIKeyRef p1, EncryptionAccessRef p2, char** p3);
+
+// get_scope_satellite_address gets Scope satellite address
+
+extern char* get_scope_satellite_address(ScopeRef p0, char** p1);
+
+// get_scope_api_key gets Scope APIKey
+
+extern APIKeyRef get_scope_api_key(ScopeRef p0, char** p1);
+
+// get_scope_enc_access gets Scope encryption access
+
+extern EncryptionAccessRef get_scope_enc_access(ScopeRef p0, char** p1);
+
+// parse_scope parses an Scope
+
+extern ScopeRef parse_scope(char* p0, char** p1);
+
+// serialize_scope serializes the Scope to a string
+
+extern char* serialize_scope(ScopeRef p0, char** p1);
+
+// restrict_scope restricts a given scope with the provided caveat and encryption restrictions
+
+extern ScopeRef restrict_scope(ScopeRef p0, Caveat p1, EncryptionRestriction** p2, size_t p3, char** p4);
+
+// free_scope frees an scope
+
+extern void free_scope(ScopeRef p0);
 
 // parse_api_key parses an API Key
 
@@ -171,10 +202,6 @@ extern EncryptionAccessRef parse_encryption_access(char* p0, char** p1);
 
 extern void free_encryption_access(EncryptionAccessRef p0);
 
-// serialize_encryption_access_custom turns an encryption access into base58.
-
-extern void serialize_encryption_access_custom(EncryptionAccessRef p0, char** p1, char** p2);
-
 // open_object returns an Object handle, if authorized.
 
 extern ObjectRef open_object(BucketRef p0, char* p1, char** p2);
@@ -205,6 +232,16 @@ extern ObjectList list_objects(BucketRef p0, ListOptions* p1, char** p2);
 // (Object.Size - offset).
 
 extern DownloaderRef download(BucketRef p0, char* p1, char** p2);
+
+// download_range returns an Object's data from specified range
+
+extern DownloaderRef download_range(BucketRef p0, char* p1, GoInt64 p2, GoInt64 p3, char** p4);
+
+// download_read reads data upto `length` bytes into `bytes` buffer and returns
+// the count of bytes read. The exact number of bytes returned depends on different
+// buffers and what is currently available.
+// When there is no more data available function returns 0.
+// On an error cErr is set, however some data may still be returned.
 
 extern size_t download_read(DownloaderRef p0, uint8_t* p1, size_t p2, char** p3);
 
@@ -258,7 +295,7 @@ extern GoUint8 internal_UniverseIsEmpty();
 //
 // Caller must call close_uplink to close associated resources.
 
-extern UplinkRef new_uplink(UplinkConfig p0, char** p1);
+extern UplinkRef new_uplink(UplinkConfig p0, char* p1, char** p2);
 
 // close_uplink closes and frees the resources associated with uplink
 
