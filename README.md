@@ -9,9 +9,9 @@ Make sure your `PATH` includes the `$GOPATH/bin` directory, so that your command
 export PATH=$PATH:$GOPATH/bin
 ```
 
-Install [storj-uplink](https://godoc.org/storj.io/storj/lib/uplink) go package, by running:
+Install [storj-uplink](https://github.com/storj/uplink-c) go package, by running:
 ```
-$ go get storj.io/storj/lib/uplink
+$ go get storj.io/uplink-c
 ```
 
 **NOTE**: Please ensure that the Xcode software is installed on your system, so as to build the binding from source.
@@ -19,65 +19,25 @@ $ go get storj.io/storj/lib/uplink
 
 ## Set-up Files
 
-* Create Project
-    * Open Xcode and go to **File/New/Project**. Find the **macOS** group, select **Application/Command Line Tool** and click **Next**
-    * Make sure that **Language** is set to **Swift**, then click **Next**
-    
-* Create Library in Swift Project
-    * In Xcode, again go to **File/New/Project**. Find the **macOS** group, select **Library** from Framework & Library section and click **Next**
-    * Enter a library name, *say*, "storj" and click **Next**
-    * Select a project name from **Add to** field and click on **Create**
+* Add Swift Module in Swift Project
+    * Open Xcode
+    * Click on File > Swift Packages > Add Package Dependency
+    * In New Pop Up window paste [storj-swift](https://github.com/utropicmedia/storj-swift.git) repository link and Click on next
+    * Select Branch from Rules and add branch name master and Click on next
+    * Click on finish
+    **NOTE** : Use *import storj_swift* statment to use Storj Functions
 
-* Add Library in Swift Project
-    * **General > Frameworks and Libraries Section**
-    * Click on **+** icon and then search for name "lib" + library name created + ".dylib"
-    * Select .dylib file and click on **Add**
-    * **NOTE**: After adding the files, check the project's setting through **General > Frameworks and Libraries > Embed**
-
-* Using cmd/terminal, navigate to the ```$HOME/go/src/storj.io/storj/lib/uplinkc``` folder.
-
-* Create '.dylib' file at  ```$HOME/go/src/storj.io/storj/lib/uplinkc``` folder, by using following command:
-```
-$ go build -v -o libuplinkc.dylib -buildmode=c-shared 
-```
-
-* Copy *libuplinkc.dylib, libuplinkc.h, uplink_definitions.h, and Uplink.swift* files into the library's sub directory, that either has the same name as that of the library OR contains .h and .m files
-
-* Add *libuplinkc.dylib, libuplinkc.h, and uplink_definitions.h* files to the library's sub-directory, that has the same name as that of the library:
-    * Open the project in Xcode 
-    * Select the afore-mentioned sub directory in navigation bar by clicking on its name
-    * Click on the File menu
-    * Select option to **Add files to "Library Name"...**
-    * Navigate to the library location and add the above-mentioned files
-
-* Add *Uplink.swift* files to library:
-    * Open the project in Xcode
-    * Select folder name, same as library name, in the navigation bar by clicking on it
-    * Click on the File menu
-    * Select option **Add files to "Library Name"...** from the File menu
-    * Navigate to the library folder and add the above-mentioned file
-    * After adding the files to library, the Xcode will ask for *creating a bridging header*
-    * Click on create this bridging file
-    * Add following code in the bridging-header file:
-      * ```#import "libuplinkc.h"```
-    * Delete .h and .m files. with the same name as that of the library, from the library folder
-
-* Copy *main.swift* file into the project directory's sub-folder, which has the same name as that of the project
-
-* Add files to folder:
-    * In Xcode, select the sub-folder, with same name as that of the project, through navigation bar
-    * Click on the File menu
-    * Select option **Add files to "Project Name"...**
-    * Navigate to the project location and add these file
-
-**NOTE with regards to main.swift**:
-* Please give full file name, including absolute file location, which is to be uploaded to Storj, in the "localFullFileNameToUpload" variable
-* In order to write your own code, using the given bindings, please replace the contents of the *main.swift* file
-* Use import command to import the above library into your main file.
+## Create .dylib Manually
+    * Navigate to uplink-c module using terminal
+    * Run following command
+        ```
+        $ go build -v -o libuplinkc.dylib -buildmode=c-shared 
+        ```
+    * Copy *libuplinkc.dylib, libuplinkc.h, uplink_definitions.h  into storj-swift/Sources/Clibuplink/include
 
 
 ## Sample Hello Storj!
-The sample *main.swift* code calls the *UplinkSwift.swift* file and binding structure so as to do the following:
+The sample *main.swift* code calls the *storj_swift.swift* file and binding structure so as to do the following:
 * create a new bucket (if it does not exist) desired Storj project
 * lists all bucket in a Storj project
 * write a file from local system to the created/opened Storj bucket
@@ -91,175 +51,286 @@ The sample *main.swift* code calls the *UplinkSwift.swift* file and binding stru
 
 **NOTE**: After calling a function, please ensure that the function returned an empty error string, before using it further. Please refer the sample *main.swift* file for example.
 
-### Uplink(NSString)
+### request_Access_With_Passphrase(NSString,NSString,NSString)
+    * function requests satellite for a new access grant using a passhprase
+    * pre-requisites: None
+    * inputs: Satellite Address, API Key and Encryptionphassphrase 
+    * output: AccessResult
+
+### config_Request_Access_With_Passphrase(config,NSString,NSString,NSString)
+    * function requests satellite for a new access grant using a passhprase and config.
+    * pre-requisites: None
+    * inputs: None
+    * output: AccessResult
+
+### stat_Bucket(inout UnsafeMutablePointer<Project>,NSString)
+    * function returns information about a bucket.
+    * pre-requisites: None
+    * inputs: Config,Satellite Address, API Key and Encryptionphassphrase 
+    * output: BucketResult
+    
+### parse_Access(NSString)
+    * function to parses serialized access grant string
+    * pre-requisites: None
+    * inputs: StringKey
+    * output: AccessResult
+
+### access_Serialize(inout Access)
+    * function to serializes access grant into a string.
+    * pre-requisites: None
+    * inputs: Access
+    * output: StringResult
+
+### free_String_Result(inout StringResult)
     * function to create new Storj uplink
     * pre-requisites: None
-    * inputs: NSString
-    * output: UplinkRef and error (NSString)
+    * inputs: StringResult
+    * output: None
 
-### closeUplink(UplinkRef)
-    * function to close currently open uplink
-    * pre-requisites: newUplink() function has been already called
-    * inputs: Uplink
-    * output: error (NSString)
+### create_Bucket(inout UnsafeMutablePointer<Project>,NSString)
+    * function to create bucket on storj V3
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> and Bucket Name
+    * output: BucketResult
 
-### parseAPIKey(NSString)
-    * function to parse API key, to be used by Storj
+### ensure_Bucket(inout UnsafeMutablePointer<Project>,NSString)
+    * function to creates a new bucket and ignores the error when it already exists
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> and Bucket Name
+    * output: BucketResult
+
+### delete_Bucket(inout UnsafeMutablePointer<Project>,NSString)
+    * function to delete empty bucket on storj V3
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> and Bucket Name
+    * output: BucketResult
+
+### list_Buckets(inout UnsafeMutablePointer<Project>,inout ListBucketsOptions)
+    * function to lists buckets
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> and List Bucket Options
+    * output: UnsafeMutablePointer<BucketIterator>? or nil
+
+### bucket_Iterator_Next(inout UnsafeMutablePointer<BucketIterator>)
+    * function prepares next Bucket for reading.
     * pre-requisites: None
-    * inputs: API key (NSString)
-    * output: APIKeyRef and error (string)
+    * inputs: UnsafeMutablePointer<BucketIterator>
+    * output: Bool
 
-### openProject(UplinkRef, NSString, APIKeyRef)
-    * function to open a Storj project
-    * pre-requisites: newUplink() and parseAPIkey() functions have been already called
-    * inputs: UplinkRef, Satellite Address (NSString) and APIKeyRef
-    * output: ProjectRef and error (string)
+### bucket_Iterator_Item(inout UnsafeMutablePointer<BucketIterator>)
+    * function to returns the current bucket in the iterator.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<BucketIterator>
+    * output: UnsafeMutablePointer<Bucket>? or nil
 
-### closeProject(ProjectRef)
-    * function to close currently open Storj project
-    * pre-requisites: openProject() function has been already called
-    * inputs: ProjectRef
-    * output: error (NSString)
+### bucket_Iterator_Err(inout UnsafeMutablePointer<BucketIterator>)
+    * function bucket_iterator_err returns error, if one happened during iteration.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<BucketIterator>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### createBucket(ProjectRef, NSString)
-    * function to create a new bucket in Storj project
-    * pre-requisites: openProject() function has been already called
-    * inputs: ProjectRef, Bucket name (NSString)
-    * output: BucketInfo, error (NSString)
+### open_Project(inout UnsafeMutablePointer<Access>)
+    * function to open project using access grant.
+    * pre-requisites:  request_Access_With_Passphrase or parse_Access function has been already called
+    * inputs: UnsafeMutablePointer<Access>
+    * output: ProjectResult
 
-### getEncryptionAccess(ProjectRef, NSString)
-    * function to get encryption access to upload and download data on Storj
-    * pre-requisites: openProject() function has been already called
-    * inputs: ProjectRef, Encryption Pass Phrase (NSString)
-    * output: SaltedKeyFromPassphrase (UnsafeMutablePointer<Int8>?), error (NSString)
+### config_Open_Project(Config,inout UnsafeMutablePointer<Access>)
+    * function to open project using access grant and config
+    * pre-requisites: request_Access_With_Passphrase or parse_Access function has been already called
+    * inputs: UnsafeMutablePointer<Access>
+    * output: ProjectResult
 
-### openBucket(ProjectRef, NSString, SaltedKeyFromPassphrase)
-    * function to open an already existing bucket in Storj project
-    * pre-requisites: getEncryptionAccess() function has been already called
-    * inputs: ProjectRef, Bucket Name (NSString) and SaltedKeyFromPassphrase (UnsafeMutablePointer<Int8>?)
-    * output: BucketRef, error (NSString)
+### close_Project(inout UnsafeMutablePointer<Project>)
+    * function close the project.
+    * pre-requisites: open_Project function has been already called
+    * inputs: None
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### listBuckets(ProjectRef, &BucketListOptions)
-    * function to list all the buckets in a Storj project
-    * pre-requeisites: openProject() function has been already called
-    * inputs: ProjectRef, address of BucketListOptions
-    * output: BucketList and error (string)
+### upload_Object(inout UnsafeMutablePointer<Project>, NSString,  NSString, UnsafeMutablePointer<UploadOptions>)
+    * function to start an upload to the specified key.
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project>, Object name and UnsafeMutablePointer<UploadOptions>
+    * output: UploadResult
 
-### freeBucketList(UnsafeMutablePointer<BucketList>)
-    * function to free Bucket list
-    * pre-requeisites: listBucket() function has been already called
-    * inputs: Pointer to BucketList (UnsafeMutablepointer<BucketList>)
-    * output: error (NSString)
+### upload_Write(inout UnsafeMutablePointer<Upload>, UnsafeMutablePointer<UInt8>,Int)
+    * function to upload len(p) bytes from p to the object's data stream.
+    * pre-requisites: upload_Object function has been already called
+    * inputs: UnsafeMutablePointer<Upload> ,Pointer to buffer array , Len of buffer
+    * output: WriteResult
 
-### closeBucket(BucketRef)
-    * function to close currently open Bucket
-    * pre-requisites: openBucket() function has been already called
-    * inputs: BucketRef
-    * output: error (NSString)
+### upload_Commit(inout UnsafeMutablePointer<Upload>)
+    * function to commits the uploaded data.
+    * pre-requisites: upload_Object function has been already called
+    * inputs: UnsafeMutablePointer<Upload>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### deleteBucket(ProjectRef, NSString)
-    * function to delete a empty bucket
-    * pre-requeisites: openBucket() function has been already called
-    * inputs: ProjectRef, Storj Bucket Name (NSString)
-    * output: BucketList and error (NSString)
+### upload_Abort(inout UnsafeMutablePointer<Upload>)
+    * function to abort current upload
+    * pre-requisites: upload_Object function has been already called
+    * inputs: UnsafeMutablePointer<Upload>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### listObjects(BucketRef, &ListOptions)
-    * function to list object in desired bucket
-    * pre-requeisites: openBucket() function has been already called
-    * inputs: BucketRef, address of ListOptions
-    * output: ObjectList and error (NSString)
+### upload_Set_Custom_Metadata(inout UnsafeMutablePointer<Upload>,CustomMetadata)
+    * function to set custom metadata on storj V3 object
+    * pre-requisites: upload_Object function has been already called
+    * inputs: UnsafeMutablePointer<Upload> ,CustomMetadata
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### deleteObject(BucketRef, NSString)
-    * function to delete an object in a bucket
-    * pre-requeisites: openBucket() function has been already called
-    * inputs: BucketRef, Storj Path/File Name (NSString)
-    * output: BucketList and error (NSString)
+### download_Object(inout UnsafeMutablePointer<Project>, NSString,  NSString, UnsafeMutablePointer<DownloadOptions>)
+    * function for dowloading object
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> ,Object Name on storj V3 and UnsafeMutablePointer<DownloadOptions>
+    * output: DownloadResult
 
-### freeObjectList(UnsafeMutablePointer<ObjectList>)
-    * function to free ObjectList
-    * pre-requeisites: listObject() function has been already called
-    * inputs: Pointer to ObjectList (UnsafeMutablepointer<ObjectList>)
-    * output: error (NSString)
-    
-### Upload(BucketRef, NSString,  NSString, UnsafeMutablePointer<UploadOptions>)
-    * function to get uploader handle used to upload data to Storj (V3) bucket's path
-    * pre-requeisites: openBucket() function has been already called
-    * inputs: BucketRef, Storj Path/File Name (NSString) within opened bucket, local Source Full File Name (NSString)
-    * output: UploderRef and error (NSString)
+### download_Read(inout UnsafeMutablePointer<Download>, UnsafeMutablePointer<UInt8>,Int)
+    * function reads byte stream from storj V3
+    * pre-requisites: download_Object function has been already called
+    * inputs: UnsafeMutablePointer<Download> ,Pointer to array buffer, Size of Buffer
+    * output: ReadResult
 
-### UploadWrite(UploaderRef, UnsafeMutablePointer<UInt8>, Int)
-    * function to write data to Storj (V3) bucket's path
-    * pre-requeisites: Upload() function has been already called
-    * inputs: UploaderRef, Pointer to bytes array (UnsafeMutablepointer<UInt8>) , sizeofbytesarray(Int)
-    * output: Size of data uploaded (Int) and error (NSString)
+### close_Download(inout UnsafeMutablePointer<Download>)
+    * function closes download
+    * pre-requisites: download_Object function has been already called
+    * inputs: UnsafeMutablePointer<Download>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### UploadCommit(UploaderRef)
-    * function to commit and finalize file for uploaded data to Storj (V3) bucket's path
-    * pre-requeisites: upload() function has been already called
-    * inputs: UploaderRef
-    * output: Downloader , error (NSString)
+### download_Info(inout UnsafeMutablePointer<Download>)
+    * function returns metadata of downloading object
+    * pre-requisites: download_Object function has been already called
+    * inputs: UnsafeMutablePointer<Download>
+    * output: ObjectResult
 
-### Download(BucketRef, NSString)
-    * function to get downloader handle to download Storj (V3) object's data and store it on local computer
-    * pre-requeisites: openBucket() function has been already called
-    * inputs: BucketRef, Storj Path/File Name (NSString) within opened bucket, local Full File Name (NSString)
-    * output: Downloader , error (NSString)
+### upload_Info(inout UnsafeMutablePointer<Upload>)
+    * function return metadata of uploading object
+    * pre-requisites: upload_Object function has been already called
+    * inputs: UnsafeMutablePointer<Upload>
+    * output: ObjectResult
 
-### downloadRead(Downloader, UnsafeMutablePointer<UInt8>, Int)
-    * function to read Storj (V3) object's data and return the data
-    * pre-requeisites: Download() function has been already called
-    * inputs: Downloader, Pointer to bytes array (UnsafeMutablepointer<UInt8>) , sizeofbytesarray(Int)
-    * output: Size of downloaded data (Int) , error (NSString)
+### list_Objects(inout UnsafeMutablePointer<Project>, NSString,inout ListObjectsOptions)
+    * function lists objects
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> ,Bucket Name and ListObjectsOptions
+    * output: UnsafeMutablePointer<ObjectIterator>? or nil
 
-### downloadClose(Downloader)
-    * function to close downloader after completing the data read process
-    * pre-requeisites: Download() function has been already called
-    * inputs: Downloader
-    * output: error (NSString)
-    
-### project_Salted_Key_From_Passphrase(ProjectRef, NSString)
-    * function to create salted key
-    * pre-requeisites: openProject() function has been already called
-    * inputs: ProjectRef and Encryption Passphrase
-    * output: Salted key (UnsafeMutablePointer<UInt8>?), error (NSString)
+### object_Iterator_Next(inout UnsafeMutablePointer<ObjectIterator>)
+    * function prepares next Object for reading.
+    * pre-requisites: list_Objects function has been already called
+    * inputs: None
+    * output: Bool
 
-### new_Encryption_Access_With_Default_Key(UnsafeMutablePointer<UInt8>?)
-    * function to get encryption access for upload and downlaod data on storj
-    * pre-requeisites: project_Salted_Key_From_Passphrase() function has been already called
-    * inputs: Salted Key (UnsafeMutablePointer<UInt8>?)
-    * output: EncryptionAccessRef
+### object_Iterator_Item(inout UnsafeMutablePointer<ObjectIterator>)
+    * function returns the current object in the iterator.
+    * pre-requisites: list_Objects function has been already called
+    * inputs: UnsafeMutablePointer<ObjectIterator>
+    * output: UnsafeMutablePointer<Object>? or nil
 
-### serialize_Encryption_Access(EncryptionAccessRef)
-    * function to create seralize the encryption access
-    * pre-requeisites: New_encryption_access_with_default_key() function has been already called
-    * inputs: EncryptionAccessRef
-    * output: Serialize encryption access(UnsafeMutablePointer<Int8>?), error (NSString)
+### object_Iterator_Err(inout UnsafeMutablePointer<ObjectIterator>)
+    * function returns error, if one happened during iteration.
+    * pre-requisites: list_Objects function has been already called
+    * inputs: UnsafeMutablePointer<ObjectIterator>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-### new_Scope(NSString,APIKeyRef,EncryptionAccessRef)
-    * function to create new Scope keyprocess
-    * pre-requeisites: parseAPIKey() and New_encryption_access_with_default_key() functions have been already called
-    * inputs: Satellite address (NSString), APIKeyRef, EncryptionAccessRef
-    * output: ScopeRef, error (NSString)
+### delete_Object(inout UnsafeMutablePointer<Project>,NSString,NSString)
+    * function delete object from storj V3
+    * pre-requisites: open_Project function has been already called
+    * inputs: UnsafeMutablePointer<Project> , Bucket Name and Object Name
+    * output: ObjectResult
 
-### restrict_Scope(ScopeRef,Caveat,[EncryptionRestriction],Int)
-    * function to restrict Scope key with the provided caveat and encryption restrictions
-    * pre-requeisites: New_scope() function has been already called
-    * inputs: ScopeRef, Caveat, Int
-    * output: ScopeRef, error (NSString)
+### stat_Object(inout UnsafeMutablePointer<Project>,NSString,NSString)
+    * function information about an object at the specific key.
+    * pre-requisites: open_project function has been already called
+    * inputs: UnsafeMutablePointer<Project> , Bucket Name and Object Name
+    * output: ObjectResult
 
-### get_Scope_Api_Key(ScopeRef)
-    * function to get API key from Parsed Scope key
-    * pre-requeisites: Restrict_scope() function has been already called
-    * inputs: ScopeRef
-    * output: APIKeyRef, error (NSString)
+### access_Share(UnsafeMutablePointer<Access>,Permission,inout UnsafeMutablePointer<SharePrefix>,Int)
+    * function creates new access grant with specific permission. Permission will be applied to prefixes when defined.
+    * pre-requisites: None
+    * inputs: None
+    * output: AccessResult
 
-### get_Scope_Enc_Access(ScopeRef)
-    * function to get Encryption Access from Parsed Scope key
-    * pre-requeisites: Restrict_scope() function has been already called
-    * inputs: ScopeRef
-    * output: EncryptionAccessRef, error (NSString)
+### free_Bucket_Iterator(inout UnsafeMutablePointer<BucketIterator>)
+    * function frees memory associated with the BucketIterator.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<Access>,Permission, UnsafeMutablePointer<SharePrefix>,Size of Share Prefix
+    * output: None
 
-### free_Uploader(UploaderRef)
-    * function to free UploadRef
-    * pre-requeisites: Upload() function has been already called
-    * inputs: UploaderRef
+### free_Bucket(inout UnsafeMutablePointer<Bucket>)
+    * function frees memory associated with the Bucket.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<Bucket>
+    * output: Uplink and error (string)
+
+### free_Object_Iterator(inout UnsafeMutablePointer<ObjectIterator>)
+    * function frees memory associated with the ObjectIterator.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<ObjectIterator>
+    * output: None
+
+### free_Read_Result(inout ReadResult)
+    * function frees memory associated with the ReadResult.
+    * pre-requisites: None
+    * inputs: ReadResult
+    * output: None
+
+### free_Download_Result(inout DownloadResult)
+    * function frees memory associated with the DownloadResult.
+    * pre-requisites: None
+    * inputs: DownloadResult
+    * output: None
+
+
+### free_Bucket_Result(inout BucketResult)
+    * function frees memory associated with the BucketResult.
+    * pre-requisites: None
+    * inputs: BucketResult
+    * output: None
+
+### free_Object_Result(inout ObjectResult)
+    * function frees memory associated with the ObjectResult.
+    * pre-requisites: None
+    * inputs: ObjectResult
+    * output: None
+
+### free_Object(inout UnsafeMutablePointer<Object>)
+    * function frees memory associated with the Object.
+    * pre-requisites: None
+    * inputs: UnsafeMutablePointer<Object>
+    * output: None
+
+### free_Project_Result(inout ProjectResult)
+    * function frees memory associated with the ProjectResult.
+    * pre-requisites: None
+    * inputs: ProjectResult
+    * output: None
+
+### free_Write_Result(inout WriteResult)
+    * function frees memory associated with the WriteResult.
+    * pre-requisites: None
+    * inputs: WriteResult
+    * output: None
+
+### free_Upload_Result(inout UploadResult)
+    * function frees memory associated with the UploadResult.
+    * pre-requisites: None
+    * inputs: UploadResult
+    * output: None
+
+### free_Access_Result(inout AccessResult)
+    * function frees memory associated with the AccessResult.
+    * pre-requisites: None
+    * inputs: AccessResult
+    * output: None
+
+### free_Error(inout UnsafeMutablePointer<Error>)
+    * function frees memory associated with the Error.
+    * pre-requisites: None
+    * inputs: inout UnsafeMutablePointer<Error>
+    * output: None
+
+## Tested On
+
+### MacOS
+    * OS version : 10.15.3
+    * Xcode : 11.4.1 
+    * Processor : 2.5 GHz Dual Core

@@ -1,148 +1,182 @@
 #pragma once
 
-#include <stdint.h>
+// Copyright (C) 2020 Storj Labs, Inc.
+// See LICENSE for copying information.
+
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-typedef enum CipherSuite {
-    STORJ_ENC_UNSPECIFIED = 0,
-    STORJ_ENC_NULL        = 1,
-    STORJ_ENC_AESGCM      = 2,
-    STORJ_ENC_SECRET_BOX  = 3
-} CipherSuite;
+typedef struct Handle {
+    size_t _handle;
+} Handle;
 
-typedef enum RedundancyAlgorithm {
-    STORJ_INVALID_REDUNDANCY_ALGORITHM = 0,
-    STORJ_REED_SOLOMON                 = 1
-} RedundancyAlgorithm;
+typedef struct Access {
+    size_t _handle;
+} Access;
+typedef struct Project {
+    size_t _handle;
+} Project;
+typedef struct Download {
+    size_t _handle;
+} Download;
+typedef struct Upload {
+    size_t _handle;
+} Upload;
 
-typedef enum ListDirection {
-    STORJ_BEFORE = -2,
-    STORJ_BACKWARD = -1,
-    STORJ_FORWARD = 1,
-    STORJ_AFTER = 2
-} ListDirection;
+typedef struct Config {
+    char *user_agent;
 
-typedef struct APIKey           { long _handle; } APIKeyRef;
-typedef struct Uplink           { long _handle; } UplinkRef;
-typedef struct Project          { long _handle; } ProjectRef;
-typedef struct Bucket           { long _handle; } BucketRef;
-typedef struct Object           { long _handle; } ObjectRef;
-typedef struct Downloader       { long _handle; } DownloaderRef;
-typedef struct Uploader         { long _handle; } UploaderRef;
-typedef struct EncryptionAccess { long _handle; } EncryptionAccessRef;
-typedef struct Scope            { long _handle; } ScopeRef;
+    int32_t dial_timeout_milliseconds;
 
-typedef struct UplinkConfig {
-    struct {
-        struct {
-            bool skip_peer_ca_whitelist;
-            char *peer_ca_whitelist_path;
-        } tls;
-        char *peer_id_version;
-        int32_t max_inline_size;
-        int32_t max_memory;
-        int32_t dial_timeout;
-        char *user_agent;
-    } Volatile;
-} UplinkConfig;
+    // temp_directory specifies where to save data during downloads to use less memory.
+    char *temp_directory;
+} Config;
 
-typedef struct EncryptionParameters {
-    CipherSuite cipher_suite;
-    int32_t     block_size;
-} EncryptionParameters;
+typedef struct Bucket {
+    char *name;
+    int64_t created;
+} Bucket;
 
-typedef struct RedundancyScheme {
-    RedundancyAlgorithm algorithm;
-    int32_t             share_size;
-    int16_t             required_shares;
-    int16_t             repair_shares;
-    int16_t             optimal_shares;
-    int16_t             total_shares;
-} RedundancyScheme;
+typedef struct SystemMetadata {
+    int64_t created;
+    int64_t expires;
+    int64_t content_length;
+} SystemMetadata;
 
-typedef struct BucketInfo {
-    char                 *name;
-    int64_t              created;
-    CipherSuite          path_cipher;
-    uint64_t             segment_size;
-    EncryptionParameters encryption_parameters;
-    RedundancyScheme     redundancy_scheme;
-} BucketInfo;
+typedef struct CustomMetadataEntry {
+    char *key;
+    size_t key_length;
 
-typedef struct BucketConfig {
-    CipherSuite          path_cipher;
-    EncryptionParameters encryption_parameters;
-    RedundancyScheme     redundancy_scheme;
-} BucketConfig;
+    char *value;
+    size_t value_length;
+} CustomMetadataEntry;
 
-typedef struct BucketListOptions {
-    char    *cursor;
-    ListDirection  direction;
-    int64_t limit;
-} BucketListOptions;
+typedef struct CustomMetadata {
+    CustomMetadataEntry *entries;
+    size_t count;
+} CustomMetadata;
 
-typedef struct BucketList {
-    bool       more;
-    BucketInfo *items;
-    int32_t    length;
-} BucketList;
-
-typedef struct ObjectInfo {
-    uint32_t   version;
-    BucketInfo bucket;
-    char       *path;
-    bool       is_prefix;
-    char       *content_type;
-    int64_t    size;
-    int64_t    created;
-    int64_t    modified;
-    int64_t    expires;
-} ObjectInfo;
-
-typedef struct ObjectList {
-    char       *bucket;
-    char       *prefix;
-    bool       more;
-    ObjectInfo *items;
-    int32_t    length;
-} ObjectList;
+typedef struct Object {
+    char *key;
+    bool is_prefix;
+    SystemMetadata system;
+    CustomMetadata custom;
+} Object;
 
 typedef struct UploadOptions {
-    char    *content_type;
+    // When expires is 0 or negative, it means no expiration.
     int64_t expires;
 } UploadOptions;
 
-typedef struct ListOptions {
-    char           *prefix;
-    char           *cursor;
-    char           delimiter;
-    bool           recursive;
-    ListDirection  direction;
-    int64_t        limit;
-} ListOptions;
+typedef struct DownloadOptions {
+    int64_t offset;
+    // When length is negative, it will read until the end of the blob.
+    int64_t length;
+} DownloadOptions;
 
-typedef struct ObjectMeta {
-    char     *bucket;
-    char     *path;
-    bool     is_prefix;
-    char     *content_type;
-    int64_t  created;
-    int64_t  modified;
-    int64_t  expires;
-    uint64_t size;
-    uint8_t  *checksum_bytes;
-    uint64_t checksum_length;
-} ObjectMeta;
+typedef struct ListObjectsOptions {
+    char *prefix;
+    char *cursor;
+    bool recursive;
 
-typedef struct EncryptionRestriction {
+    bool system;
+    bool custom;
+} ListObjectsOptions;
+
+typedef struct ListBucketsOptions {
+    char *cursor;
+} ListBucketsOptions;
+
+typedef struct ObjectIterator {
+    size_t _handle;
+} ObjectIterator;
+typedef struct BucketIterator {
+    size_t _handle;
+} BucketIterator;
+
+typedef struct Permission {
+    bool allow_download;
+    bool allow_upload;
+    bool allow_list;
+    bool allow_delete;
+
+    // unix time in seconds when the permission becomes valid.
+    // disabled when 0.
+    int64_t not_before;
+    // unix time in seconds when the permission becomes invalid.
+    // disabled when 0.
+    int64_t not_after;
+} Permission;
+
+typedef struct SharePrefix {
     char *bucket;
-    char *path_prefix;
-} EncryptionRestriction;
+    // prefix is the prefix of the shared object keys.
+    char *prefix;
+} SharePrefix;
 
-typedef struct Caveat { 
-	bool disallow_reads;
-	bool disallow_writes;
-	bool disallow_lists;
-	bool disallow_deletes;
-} Caveat;
+typedef struct Error {
+    int32_t code;
+    char *message;
+} Error;
+
+#define ERROR_INTERNAL 0x02
+#define ERROR_CANCELED 0x03
+#define ERROR_INVALID_HANDLE 0x04
+#define ERROR_TOO_MANY_REQUESTS 0x05
+#define ERROR_BANDWIDTH_LIMIT_EXCEEDED 0x06
+
+#define ERROR_BUCKET_NAME_INVALID 0x10
+#define ERROR_BUCKET_ALREADY_EXISTS 0x11
+#define ERROR_BUCKET_NOT_EMPTY 0x12
+#define ERROR_BUCKET_NOT_FOUND 0x13
+
+#define ERROR_OBJECT_KEY_INVALID 0x20
+#define ERROR_OBJECT_NOT_FOUND 0x21
+#define ERROR_UPLOAD_DONE 0x22
+
+typedef struct AccessResult {
+    Access *access;
+    Error *error;
+} AccessResult;
+
+typedef struct ProjectResult {
+    Project *project;
+    Error *error;
+} ProjectResult;
+
+typedef struct BucketResult {
+    Bucket *bucket;
+    Error *error;
+} BucketResult;
+
+typedef struct ObjectResult {
+    Object *object;
+    Error *error;
+} ObjectResult;
+
+typedef struct UploadResult {
+    Upload *upload;
+    Error *error;
+} UploadResult;
+
+typedef struct DownloadResult {
+    Download *download;
+    Error *error;
+} DownloadResult;
+
+typedef struct WriteResult {
+    size_t bytes_written;
+    Error *error;
+} WriteResult;
+
+typedef struct ReadResult {
+    size_t bytes_read;
+    Error *error;
+} ReadResult;
+
+typedef struct StringResult {
+    char *string;
+    Error *error;
+} StringResult;
