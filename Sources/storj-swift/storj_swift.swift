@@ -25,8 +25,8 @@ public struct Storj {
         }
     }
     //Errors
-    var dylibNotFound: String = "File does not exists on Path : "
-    var failToOpenDylib: String = "FAILed to open .dylib file"
+    var dylibNotFound: String = "Failed to find .dylib file at : "
+    var failToOpenDylib: String = "Failed to open .dylib file"
     var failToFoundFunction: String = "Symbol not found in .dylib"
     //Creating typesalias of all the functions
     typealias parse_access = @convention(c)(UnsafeMutablePointer<Int8>?) -> (AccessResult)
@@ -137,7 +137,7 @@ public struct Storj {
                     let ptrAPIKey = UnsafeMutablePointer<CChar>(mutating: apiKey.utf8String)
                     let ptrEncryptionPassphrase = UnsafeMutablePointer<CChar>(mutating: encryptionPassphrase.utf8String)
                     let accessResult = requestAccessWithPassphraseFunc(ptrSatelliteAddress,ptrAPIKey,ptrEncryptionPassphrase)
-                    return (accessResult)
+                    return accessResult
                 } else {
                     throw self.failToFoundFunction
                 }
@@ -165,7 +165,7 @@ public struct Storj {
                     let ptrAPIKey = UnsafeMutablePointer<CChar>(mutating: apiKey.utf8String)
                     let ptrEncryptionPassphrase = UnsafeMutablePointer<CChar>(mutating: encryptionPassphrase.utf8String)
                     let accessResult = configRequestAccessWithPassphraseFunc(config,ptrSatelliteAddress,ptrAPIKey,ptrEncryptionPassphrase)
-                    return (accessResult)
+                    return accessResult
                 } else {
                     throw self.failToFoundFunction
                 }
@@ -207,7 +207,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: Access
    //* output: StringResult
-    mutating public func access_Serialize(accessObj:inout Access)throws -> (StringResult) {
+    mutating public func access_Serialize(access:inout Access)throws -> (StringResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -215,7 +215,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "access_serialize")
                 if sym != nil {
                     let accessSerializeFunc = unsafeBitCast(sym, to: access_serialize.self)
-                    let stringResult = accessSerializeFunc(&accessObj)
+                    let stringResult = accessSerializeFunc(&access)
                     return stringResult
                 } else {
                    throw self.failToFoundFunction
@@ -228,11 +228,11 @@ public struct Storj {
         }
     }
     //
-   //* function to create new Storj uplink
+   //* function to free memory associated with the StringResult
    //* pre-requisites: None
    //* inputs: StringResult
    //* output: None
-    mutating public func free_String_Result(StringResultObj:inout StringResult)throws -> () {
+    mutating public func free_String_Result(stringResult:inout StringResult)throws -> () {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -240,7 +240,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_string_result")
                 if sym != nil {
                     let freeStringResultFunc = unsafeBitCast(sym, to: free_string_result.self)
-                    freeStringResultFunc(StringResultObj)
+                    freeStringResultFunc(stringResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -256,7 +256,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: Config,Satellite Address, API Key and Encryptionphassphrase 
    //* output: BucketResult
-    mutating public func stat_Bucket(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws ->(BucketResult) {
+    mutating public func stat_Bucket(project:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws ->(BucketResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -265,8 +265,8 @@ public struct Storj {
                 if sym != nil {
                     let statBucketFunc = unsafeBitCast(sym, to: stat_bucket.self)
                     let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                    let bucketResult = statBucketFunc(ptrToProject,ptrBucketName)
-                    return (bucketResult)
+                    let bucketResult = statBucketFunc(project,ptrBucketName)
+                    return bucketResult
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -282,7 +282,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> and Bucket Name
    //* output: BucketResult
-    mutating public func create_Bucket(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
+    mutating public func create_Bucket(project:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
          let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
              let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -291,7 +291,7 @@ public struct Storj {
                  if sym != nil {
                      let createBucketFunc = unsafeBitCast(sym, to: create_bucket.self)
                      let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                     let bucketResult = createBucketFunc(ptrToProject,ptrBucketName)
+                     let bucketResult = createBucketFunc(project,ptrBucketName)
                      return (bucketResult)
                  } else {
                     throw self.failToFoundFunction
@@ -308,7 +308,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> and Bucket Name
    //* output: BucketResult
-    mutating public func ensure_Bucket(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
+    mutating public func ensure_Bucket(project:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -317,7 +317,7 @@ public struct Storj {
                 if sym != nil {
                     let ensureBucketFunc = unsafeBitCast(sym, to: stat_bucket.self)
                     let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                    let bucketResult = ensureBucketFunc(ptrToProject,ptrBucketName)
+                    let bucketResult = ensureBucketFunc(project,ptrBucketName)
                     return (bucketResult)
                 } else {
                    throw self.failToFoundFunction
@@ -334,7 +334,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> and Bucket Name
    //* output: BucketResult
-    mutating public func delete_Bucket(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
+    mutating public func delete_Bucket(project:inout UnsafeMutablePointer<Project>,bucketName:NSString)throws -> (BucketResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -343,7 +343,7 @@ public struct Storj {
                 if sym != nil {
                     let deleteBucketFunc = unsafeBitCast(sym, to: delete_bucket.self)
                     let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                    let bucketResult = deleteBucketFunc(ptrToProject,ptrBucketName)
+                    let bucketResult = deleteBucketFunc(project,ptrBucketName)
                     return bucketResult
                 } else {
                    throw self.failToFoundFunction
@@ -360,7 +360,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> and List Bucket Options
    //* output: UnsafeMutablePointer<BucketIterator>? or nil
-    mutating public func list_Buckets(ptrToProject:inout UnsafeMutablePointer<Project>,listBucketsOptionsObj:inout ListBucketsOptions)throws -> (UnsafeMutablePointer<BucketIterator>?) {
+    mutating public func list_Buckets(project:inout UnsafeMutablePointer<Project>,listBucketsOptionsObj:inout ListBucketsOptions)throws -> (UnsafeMutablePointer<BucketIterator>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -368,7 +368,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "list_buckets")
                 if sym != nil {
                     let listBucketsFunc = unsafeBitCast(sym, to: list_buckets.self)
-                    let bucketIterator = listBucketsFunc(ptrToProject,&listBucketsOptionsObj)
+                    let bucketIterator = listBucketsFunc(project,&listBucketsOptionsObj)
                     return bucketIterator
                 } else {
                    throw self.failToFoundFunction
@@ -385,7 +385,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<BucketIterator>
    //* output: Bool
-    mutating public func bucket_Iterator_Next(ptrToBucketIterator:inout UnsafeMutablePointer<BucketIterator>)throws ->(Bool) {
+    mutating public func bucket_Iterator_Next(bucketIterator:inout UnsafeMutablePointer<BucketIterator>)throws ->(Bool) {
         var bucketIteratorResult : Bool = false
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
@@ -394,7 +394,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "bucket_iterator_next")
                 if sym != nil {
                     let bucketIteratorNextFunc = unsafeBitCast(sym, to: bucket_iterator_next.self)
-                    bucketIteratorResult = bucketIteratorNextFunc(ptrToBucketIterator)
+                    bucketIteratorResult = bucketIteratorNextFunc(bucketIterator)
                     return (bucketIteratorResult)
                 } else {
                    throw self.failToFoundFunction
@@ -411,7 +411,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<BucketIterator>
    //* output: UnsafeMutablePointer<Bucket>? or nil
-    mutating public func bucket_Iterator_Item(ptrToBucketIterator:inout UnsafeMutablePointer<BucketIterator> )throws -> (UnsafeMutablePointer<Bucket>?) {
+    mutating public func bucket_Iterator_Item(bucketIterator:inout UnsafeMutablePointer<BucketIterator> )throws -> (UnsafeMutablePointer<Bucket>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -419,8 +419,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "bucket_iterator_item")
                 if sym != nil {
                     let bucketIteratorItemFunc = unsafeBitCast(sym, to: bucket_iterator_item.self)
-                    let ptrToBucket = bucketIteratorItemFunc(ptrToBucketIterator)
-                    return ptrToBucket
+                    let bucket = bucketIteratorItemFunc(bucketIterator)
+                    return bucket
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -436,7 +436,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<BucketIterator>
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func bucket_Iterator_Err(ptrToBucketIterator:inout UnsafeMutablePointer<BucketIterator> )throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func bucket_Iterator_Err(bucketIterator:inout UnsafeMutablePointer<BucketIterator> )throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -444,8 +444,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "bucket_iterator_err")
                 if sym != nil {
                     let bucketIteratorErrorFunc = unsafeBitCast(sym, to: bucket_iterator_err.self)
-                    let ptrToError = bucketIteratorErrorFunc(ptrToBucketIterator)
-                    return ptrToError
+                    let error = bucketIteratorErrorFunc(bucketIterator)
+                    return error
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -461,7 +461,7 @@ public struct Storj {
    //* pre-requisites:  request_Access_With_Passphrase or parse_Access function has been already called
    //* inputs: UnsafeMutablePointer<Access>
    //* output: ProjectResult
-    mutating public func open_Project(ptrToAccess:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
+    mutating public func open_Project(access:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -469,8 +469,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "open_project")
                 if sym != nil {
                     let openProjectFunc = unsafeBitCast(sym, to: open_project.self)
-                        let lO_projectResult = openProjectFunc(ptrToAccess)
-                        return (lO_projectResult)
+                        let projectResult = openProjectFunc(access)
+                        return projectResult
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -486,7 +486,7 @@ public struct Storj {
    //* pre-requisites: request_Access_With_Passphrase or parse_Access function has been already called
    //* inputs: UnsafeMutablePointer<Access>
    //* output: ProjectResult
-    mutating public func config_Open_Project(config:Config,ptrToAccess:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
+    mutating public func config_Open_Project(config:Config,access:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -494,8 +494,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "config_open_project")
                 if sym != nil {
                     let configOpenProjectFunc = unsafeBitCast(sym, to: config_open_project.self)
-                        let lO_projectResult = configOpenProjectFunc(config,ptrToAccess)
-                        return lO_projectResult.self
+                        let projectResult = configOpenProjectFunc(config,access)
+                        return projectResult
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -511,7 +511,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: None
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func close_Project(ptrToProject:inout UnsafeMutablePointer<Project>)throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func close_Project(project:inout UnsafeMutablePointer<Project>)throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -519,8 +519,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "close_project")
                 if sym != nil {
                     let closeProjectFunc = unsafeBitCast(sym, to: close_project.self)
-                    let lO_error = closeProjectFunc(ptrToProject)
-                    return lO_error
+                    let error = closeProjectFunc(project)
+                    return error
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -536,7 +536,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project>, Object name and UnsafeMutablePointer<UploadOptions>
    //* output: UploadResult
-    mutating public func upload_Object(ptrToProject:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,  storjUploadPath :NSString, ptrToUploadOptions :UnsafeMutablePointer<UploadOptions>)throws -> (UploadResult) {
+    mutating public func upload_Object(project:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,  storjUploadPath :NSString, uploadOptions :UnsafeMutablePointer<UploadOptions>)throws -> (UploadResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -546,10 +546,10 @@ public struct Storj {
                     let uploadObjectFunc = unsafeBitCast(sym, to: upload_object.self)
                     let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjUploadPath.utf8String)
                     let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: storjBucketName.utf8String)
-                    let uploadResult = uploadObjectFunc(ptrToProject, ptrToBucketName, ptrStorjPath, ptrToUploadOptions)
+                    let uploadResult = uploadObjectFunc(project, ptrToBucketName, ptrStorjPath, uploadOptions)
                     return (uploadResult)
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -563,7 +563,7 @@ public struct Storj {
    //* pre-requisites: upload_Object function has been already called
    //* inputs: UnsafeMutablePointer<Upload> ,Pointer to buffer array , Len of buffer
    //* output: WriteResult
-    mutating public func upload_Write(ptrToUpload:inout UnsafeMutablePointer<Upload>, ptrdataInUint :UnsafeMutablePointer<UInt8>,sizeToWrite :Int)throws -> (WriteResult) {
+    mutating public func upload_Write(upload:inout UnsafeMutablePointer<Upload>, data :UnsafeMutablePointer<UInt8>,sizeToWrite :Int)throws -> (WriteResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -571,10 +571,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "upload_write")
                 if sym != nil {
                     let uploadWriteFunc = unsafeBitCast(sym, to: upload_write.self)
-                    let writeResult = uploadWriteFunc(ptrToUpload, ptrdataInUint, sizeToWrite)
+                    let writeResult = uploadWriteFunc(upload, data, sizeToWrite)
                     return (writeResult)
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -588,7 +588,7 @@ public struct Storj {
    //* pre-requisites: upload_Object function has been already called
    //* inputs: UnsafeMutablePointer<Upload>
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func upload_Commit(ptrToUpload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func upload_Commit(upload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -596,10 +596,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "upload_commit")
                 if sym != nil {
                     let uploadCommitFunc = unsafeBitCast(sym, to: upload_commit.self)
-                    let ptrToError = uploadCommitFunc(ptrToUpload)
-                    return (ptrToError)
+                    let error = uploadCommitFunc(upload)
+                    return (error)
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -613,7 +613,7 @@ public struct Storj {
    //* pre-requisites: upload_Object function has been already called
    //* inputs: UnsafeMutablePointer<Upload>
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func upload_Abort(ptrToUpload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func upload_Abort(upload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -621,10 +621,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "upload_abort")
                 if sym != nil {
                     let uploadAbortFunc = unsafeBitCast(sym, to: upload_abort.self)
-                    let ptrToError = uploadAbortFunc(ptrToUpload)
-                    return ptrToError
+                    let error = uploadAbortFunc(upload)
+                    return error
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -638,7 +638,7 @@ public struct Storj {
    //* pre-requisites: upload_Object function has been already called
    //* inputs: UnsafeMutablePointer<Upload> ,CustomMetadata
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func upload_Set_Custom_Metadata(ptrToUpload:inout UnsafeMutablePointer<Upload>,customMetaDataObj:CustomMetadata)throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func upload_Set_Custom_Metadata(upload:inout UnsafeMutablePointer<Upload>,customMetaDataObj:CustomMetadata)throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -646,10 +646,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "upload_set_custom_metadata")
                 if sym != nil {
                     let uploadSetCustomMetadataFunc = unsafeBitCast(sym, to: upload_set_custom_metadata.self)
-                    let ptrToError = uploadSetCustomMetadataFunc(ptrToUpload,customMetaDataObj)
-                    return ptrToError
+                    let error = uploadSetCustomMetadataFunc(upload,customMetaDataObj)
+                    return error
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -663,7 +663,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> ,Object Name on storj V3 and UnsafeMutablePointer<DownloadOptions>
    //* output: DownloadResult
-    mutating public func download_Object(ptrToProject:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,storjObject :NSString,ptrToDownloadOptions :UnsafeMutablePointer<DownloadOptions>)throws -> (DownloadResult) {
+    mutating public func download_Object(project:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,storjObjectName :NSString,downloadOptions :UnsafeMutablePointer<DownloadOptions>)throws -> (DownloadResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -671,12 +671,12 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "download_object")
                 if sym != nil {
                     let downloadObjectFunc = unsafeBitCast(sym, to: download_object.self)
-                    let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjObject.utf8String)
+                    let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjObjectName.utf8String)
                     let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: storjBucketName.utf8String)
-                    let downloadResult = downloadObjectFunc(ptrToProject, ptrToBucketName, ptrStorjPath, ptrToDownloadOptions)
+                    let downloadResult = downloadObjectFunc(project, ptrToBucketName, ptrStorjPath, downloadOptions)
                     return (downloadResult)
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -690,7 +690,7 @@ public struct Storj {
    //* pre-requisites: download_Object function has been already called
    //* inputs: UnsafeMutablePointer<Download> ,Pointer to array buffer, Size of Buffer
    //* output: ReadResult
-    mutating public func download_Read(ptrToDownload:inout UnsafeMutablePointer<Download>, ptrdataInUint :UnsafeMutablePointer<UInt8>,sizeToWrite :Int)throws -> (ReadResult) {
+    mutating public func download_Read(download:inout UnsafeMutablePointer<Download>, data :UnsafeMutablePointer<UInt8>,sizeToWrite :Int)throws -> (ReadResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -698,8 +698,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "download_read")
                 if sym != nil {
                     let downloadReadFunc = unsafeBitCast(sym, to: download_read.self)
-                    let readResult = downloadReadFunc(ptrToDownload, ptrdataInUint, sizeToWrite)
-                    return (readResult)
+                    let readResult = downloadReadFunc(download, data, sizeToWrite)
+                    return readResult
                 } else {
                    throw "Symbol not found in .dylib file"
                 }
@@ -715,7 +715,7 @@ public struct Storj {
    //* pre-requisites: download_Object function has been already called
    //* inputs: UnsafeMutablePointer<Download>
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func close_Download(ptrToDownload:inout UnsafeMutablePointer<Download>)throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func close_Download(download:inout UnsafeMutablePointer<Download>)throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -723,10 +723,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "close_download")
                 if sym != nil {
                     let closeDownloadFunc = unsafeBitCast(sym, to: close_download.self)
-                    let ptrToError =  closeDownloadFunc(ptrToDownload)
-                    return ptrToError
+                    let error =  closeDownloadFunc(download)
+                    return error
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -740,7 +740,7 @@ public struct Storj {
    //* pre-requisites: download_Object function has been already called
    //* inputs: UnsafeMutablePointer<Download>
    //* output: ObjectResult
-    mutating public func download_Info(ptrToDownload:inout UnsafeMutablePointer<Download>)throws -> (ObjectResult) {
+    mutating public func download_Info(download:inout UnsafeMutablePointer<Download>)throws -> (ObjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -748,10 +748,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "download_info")
                 if sym != nil {
                     let downloadInfoFunc = unsafeBitCast(sym, to: download_info.self)
-                    let objectResult =  downloadInfoFunc(ptrToDownload)
+                    let objectResult =  downloadInfoFunc(download)
                     return objectResult
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -765,7 +765,7 @@ public struct Storj {
    //* pre-requisites: upload_Object function has been already called
    //* inputs: UnsafeMutablePointer<Upload>
    //* output: ObjectResult
-    mutating public func upload_Info(ptrToUpload:inout UnsafeMutablePointer<Upload>)throws -> (ObjectResult) {
+    mutating public func upload_Info(upload:inout UnsafeMutablePointer<Upload>)throws -> (ObjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -773,10 +773,10 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "upload_info")
                 if sym != nil {
                     let uploadInfoFunc = unsafeBitCast(sym, to: upload_info.self)
-                    let objectResult =  uploadInfoFunc(ptrToUpload)
+                    let objectResult =  uploadInfoFunc(upload)
                     return objectResult
                 } else {
-                   throw "Symbol not found in .dylib file"
+                   throw self.failToFoundFunction
                 }
             } else {
                throw self.failToOpenDylib
@@ -790,7 +790,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> ,Bucket Name and ListObjectsOptions
    //* output: UnsafeMutablePointer<ObjectIterator>? or nil
-    mutating public func list_Objects(ptrToProject:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,listObjectsOptionsObj:inout ListObjectsOptions)throws -> (UnsafeMutablePointer<ObjectIterator>?) {
+    mutating public func list_Objects(project:inout UnsafeMutablePointer<Project>, storjBucketName :NSString,listObjectsOptions:inout ListObjectsOptions)throws -> (UnsafeMutablePointer<ObjectIterator>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -799,7 +799,7 @@ public struct Storj {
                 if sym != nil {
                     let listObjectsFunc = unsafeBitCast(sym, to: list_objects.self)
                     let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: storjBucketName.utf8String)
-                    let objectIterator = listObjectsFunc(ptrToProject,ptrToBucketName,&listObjectsOptionsObj)
+                    let objectIterator = listObjectsFunc(project,ptrToBucketName,&listObjectsOptions)
                     return objectIterator
                 } else {
                    throw self.failToFoundFunction
@@ -816,7 +816,7 @@ public struct Storj {
    //* pre-requisites: list_Objects function has been already called
    //* inputs: None
    //* output: Bool
-    mutating public func object_Iterator_Next(ptrToObjectIterator:inout UnsafeMutablePointer<ObjectIterator>)throws -> (Bool) {
+    mutating public func object_Iterator_Next(objectIterator:inout UnsafeMutablePointer<ObjectIterator>)throws -> (Bool) {
         var objectIteratorResult : Bool = false
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
@@ -825,7 +825,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "object_iterator_next")
                 if sym != nil {
                     let objectIteratorNextFunc = unsafeBitCast(sym, to: object_iterator_next.self)
-                    objectIteratorResult = objectIteratorNextFunc(ptrToObjectIterator)
+                    objectIteratorResult = objectIteratorNextFunc(objectIterator)
                     return (objectIteratorResult)
                 } else {
                    throw self.failToFoundFunction
@@ -842,7 +842,7 @@ public struct Storj {
    //* pre-requisites: list_Objects function has been already called
    //* inputs: UnsafeMutablePointer<ObjectIterator>
    //* output: UnsafeMutablePointer<Object>? or nil
-    mutating public func object_Iterator_Item(ptrToObjectIterator:inout UnsafeMutablePointer<ObjectIterator> )throws -> (UnsafeMutablePointer<Object>?) {
+    mutating public func object_Iterator_Item(objectIterator:inout UnsafeMutablePointer<ObjectIterator> )throws -> (UnsafeMutablePointer<Object>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -850,8 +850,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "object_iterator_item")
                 if sym != nil {
                     let objectIteratorItemFunc = unsafeBitCast(sym, to: object_iterator_item.self)
-                    let ptrToObject = objectIteratorItemFunc(ptrToObjectIterator)
-                    return ptrToObject
+                    let object = objectIteratorItemFunc(objectIterator)
+                    return object
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -867,7 +867,7 @@ public struct Storj {
    //* pre-requisites: list_Objects function has been already called
    //* inputs: UnsafeMutablePointer<ObjectIterator>
    //* output: UnsafeMutablePointer<Error>? or nil
-    mutating public func object_Iterator_Err(ptrToObjectIterator:inout UnsafeMutablePointer<ObjectIterator> )throws -> (UnsafeMutablePointer<Error>?) {
+    mutating public func object_Iterator_Err(objectIterator:inout UnsafeMutablePointer<ObjectIterator> )throws -> (UnsafeMutablePointer<Error>?) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -875,8 +875,8 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "object_iterator_err")
                 if sym != nil {
                     let objectIteratorErrorFunc = unsafeBitCast(sym, to: object_iterator_err.self)
-                    let ptrToError = objectIteratorErrorFunc(ptrToObjectIterator)
-                    return ptrToError
+                    let error = objectIteratorErrorFunc(objectIterator)
+                    return error
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -892,7 +892,7 @@ public struct Storj {
    //* pre-requisites: open_Project function has been already called
    //* inputs: UnsafeMutablePointer<Project> , Bucket Name and Object Name
    //* output: ObjectResult
-    mutating public func delete_Object(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString,storjObject:NSString)throws ->(ObjectResult) {
+    mutating public func delete_Object(project:inout UnsafeMutablePointer<Project>,bucketName:NSString,storjObjectName:NSString)throws ->(ObjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -900,9 +900,9 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "delete_object")
                 if sym != nil {
                     let deleteObjectFunc = unsafeBitCast(sym, to: delete_object.self)
-                    let ptrStorjObject = UnsafeMutablePointer<CChar>(mutating: storjObject.utf8String)
+                    let ptrStorjObjectName = UnsafeMutablePointer<CChar>(mutating: storjObjectName.utf8String)
                     let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                    let objectResult = deleteObjectFunc(ptrToProject,ptrBucketName,ptrStorjObject)
+                    let objectResult = deleteObjectFunc(project,ptrBucketName,ptrStorjObjectName)
                     return objectResult
                 } else {
                    throw self.failToFoundFunction
@@ -919,7 +919,7 @@ public struct Storj {
    //* pre-requisites: open_project function has been already called
    //* inputs: UnsafeMutablePointer<Project> , Bucket Name and Object Name
    //* output: ObjectResult
-    mutating public func stat_Object(ptrToProject:inout UnsafeMutablePointer<Project>,bucketName:NSString,storjObject:NSString)throws ->(ObjectResult) {
+    mutating public func stat_Object(project:inout UnsafeMutablePointer<Project>,bucketName:NSString,storjObjectName:NSString)throws ->(ObjectResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -927,9 +927,9 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "stat_object")
                 if sym != nil {
                     let statObjectFunc = unsafeBitCast(sym, to: stat_object.self)
-                    let ptrStorjObject = UnsafeMutablePointer<CChar>(mutating: storjObject.utf8String)
+                    let ptrStorjObjectName = UnsafeMutablePointer<CChar>(mutating: storjObjectName.utf8String)
                     let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: bucketName.utf8String)
-                    let objectResult = statObjectFunc(ptrToProject,ptrBucketName,ptrStorjObject)
+                    let objectResult = statObjectFunc(project,ptrBucketName,ptrStorjObjectName)
                     return objectResult
                 } else {
                    throw self.failToFoundFunction
@@ -946,7 +946,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: None
    //* output: AccessResult
-    mutating public func access_Share(ptrToAccess:inout UnsafeMutablePointer<Access>,permission:inout Permission,ptrToPrefix:inout UnsafeMutablePointer<SharePrefix>,prefixCount:Int)throws ->(AccessResult) {
+    mutating public func access_Share(access:inout UnsafeMutablePointer<Access>,permission:inout Permission,prefix:inout UnsafeMutablePointer<SharePrefix>,prefixCount:Int)throws ->(AccessResult) {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -954,7 +954,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "access_share")
                 if sym != nil {
                     let accessShareFunc = unsafeBitCast(sym, to: access_share.self)
-                    let accessResult = accessShareFunc(ptrToAccess,permission,ptrToPrefix,GoInt(prefixCount))
+                    let accessResult = accessShareFunc(access,permission,prefix,GoInt(prefixCount))
                     return accessResult
                 } else {
                    throw self.failToFoundFunction
@@ -971,7 +971,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<Access>,Permission, UnsafeMutablePointer<SharePrefix>,Size of Share Prefix
    //* output: None
-    mutating public func free_Bucket_Iterator(ptrToBucketIterator:inout UnsafeMutablePointer<BucketIterator>)throws ->() {
+    mutating public func free_Bucket_Iterator(bucketIterator:inout UnsafeMutablePointer<BucketIterator>)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -979,7 +979,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_bucket_iterator")
                 if sym != nil {
                     let freeBucketIteratorFunc = unsafeBitCast(sym, to: free_bucket_iterator.self)
-                    freeBucketIteratorFunc(ptrToBucketIterator)
+                    freeBucketIteratorFunc(bucketIterator)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -995,7 +995,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<Bucket>
    //* output: Uplink and error (string)
-    mutating public func free_Bucket(ptrToBucket:inout UnsafeMutablePointer<Bucket>)throws ->() {
+    mutating public func free_Bucket(bucket:inout UnsafeMutablePointer<Bucket>)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1003,7 +1003,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_bucket")
                 if sym != nil {
                     let freeBucketFunc = unsafeBitCast(sym, to: free_bucket.self)
-                    freeBucketFunc(ptrToBucket)
+                    freeBucketFunc(bucket)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1019,7 +1019,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: ObjectResult
    //* output: None
-    mutating public func free_Object_Iterator(ptrToObjectIterator:inout UnsafeMutablePointer<ObjectIterator>)throws ->() {
+    mutating public func free_Object_Iterator(objectIterator:inout UnsafeMutablePointer<ObjectIterator>)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1027,7 +1027,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_object_iterator")
                 if sym != nil {
                     let freeObjectIteratorFunc = unsafeBitCast(sym, to: free_object_iterator.self)
-                    freeObjectIteratorFunc(ptrToObjectIterator)
+                    freeObjectIteratorFunc(objectIterator)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1043,7 +1043,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: ReadResult
    //* output: None
-    mutating public func free_Read_Result(readResultObj:inout ReadResult)throws ->() {
+    mutating public func free_Read_Result(readResult:inout ReadResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1051,7 +1051,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_read_result")
                 if sym != nil {
                     let freeReadResultFunc = unsafeBitCast(sym, to: free_read_result.self)
-                    freeReadResultFunc(readResultObj)
+                    freeReadResultFunc(readResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1067,7 +1067,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: DownloadResult
    //* output: None
-    mutating public func free_Download_Result(downloadResultObj:inout DownloadResult)throws ->() {
+    mutating public func free_Download_Result(downloadResult:inout DownloadResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1075,7 +1075,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_download_result")
                 if sym != nil {
                     let freeDownloadResultFunc = unsafeBitCast(sym, to: free_download_result.self)
-                    freeDownloadResultFunc(downloadResultObj)
+                    freeDownloadResultFunc(downloadResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1091,7 +1091,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: BucketResult
    //* output: None
-    mutating public func free_Bucket_Result(bucketResultObj:inout BucketResult)throws ->() {
+    mutating public func free_Bucket_Result(bucketResult:inout BucketResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1099,7 +1099,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_bucket_result")
                 if sym != nil {
                     let freeBucketResultFunc = unsafeBitCast(sym, to: free_bucket_result.self)
-                    freeBucketResultFunc(bucketResultObj)
+                    freeBucketResultFunc(bucketResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1115,7 +1115,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: inout UnsafeMutablePointer<Error>
    //* output: None
-    mutating public func free_Error(ptrToError:inout UnsafeMutablePointer<Error>)throws ->() {
+    mutating public func free_Error(error:inout UnsafeMutablePointer<Error>)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1123,7 +1123,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_error")
                 if sym != nil {
                     let freeErrorFunc = unsafeBitCast(sym, to: free_error.self)
-                    freeErrorFunc(ptrToError)
+                    freeErrorFunc(error)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1139,7 +1139,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: ObjectResult
    //* output: None
-    mutating public func free_Object_Result(objectResultObj:inout ObjectResult)throws ->() {
+    mutating public func free_Object_Result(objectResult:inout ObjectResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1147,7 +1147,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_object_result")
                 if sym != nil {
                     let freeObjectResultFunc = unsafeBitCast(sym, to: free_object_result.self)
-                    freeObjectResultFunc(objectResultObj)
+                    freeObjectResultFunc(objectResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1163,7 +1163,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UnsafeMutablePointer<Object>
    //* output: None
-    mutating public func free_Object(ptrToObject:inout UnsafeMutablePointer<Object>)throws ->() {
+    mutating public func free_Object(object:inout UnsafeMutablePointer<Object>)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1171,7 +1171,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_object")
                 if sym != nil {
                     let freeObjectFunc = unsafeBitCast(sym, to: free_object.self)
-                    freeObjectFunc(ptrToObject)
+                    freeObjectFunc(object)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1187,7 +1187,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: ProjectResult
    //* output: None
-    mutating public func free_Project_Result(projectResultObj:inout ProjectResult)throws ->() {
+    mutating public func free_Project_Result(projectResult:inout ProjectResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1195,7 +1195,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_project_result")
                 if sym != nil {
                     let freeProjectResultFunc = unsafeBitCast(sym, to: free_project_result.self)
-                    freeProjectResultFunc(projectResultObj)
+                    freeProjectResultFunc(projectResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1211,7 +1211,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: WriteResult
    //* output: None
-    mutating public func free_Write_Result(writeResultObj:inout WriteResult)throws ->() {
+    mutating public func free_Write_Result(writeResult:inout WriteResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1219,7 +1219,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_write_result")
                 if sym != nil {
                     let freeWriteResultFunc = unsafeBitCast(sym, to: free_write_result.self)
-                    freeWriteResultFunc(writeResultObj)
+                    freeWriteResultFunc(writeResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1235,7 +1235,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: UploadResult
    //* output: None
-    mutating public func free_Upload_Result(uploadResultObj:inout UploadResult)throws ->() {
+    mutating public func free_Upload_Result(uploadResult:inout UploadResult)throws ->() {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1243,7 +1243,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_upload_result")
                 if sym != nil {
                     let freeUploadResultFunc = unsafeBitCast(sym, to: free_upload_result.self)
-                    freeUploadResultFunc(uploadResultObj)
+                    freeUploadResultFunc(uploadResult)
                 } else {
                    throw self.failToFoundFunction
                 }
@@ -1259,7 +1259,7 @@ public struct Storj {
    //* pre-requisites: None
    //* inputs: AccessResult
    //* output: None
-    mutating public func free_Access_Result(accessResultObj:inout AccessResult)throws -> () {
+    mutating public func free_Access_Result(accessResult:inout AccessResult)throws -> () {
         let fileManger = FileManager.default
         if fileManger.fileExists(atPath: self.dynamicFileLocation) {
             let dynammicFileHandle = dlopen(self.dynamicFileLocation,RTLD_LOCAL|RTLD_NOW)
@@ -1267,7 +1267,7 @@ public struct Storj {
                 let sym = dlsym(dynammicFileHandle, "free_access_result")
                 if sym != nil {
                     let freeAccessResultFunc = unsafeBitCast(sym, to: free_access_result.self)
-                    freeAccessResultFunc(accessResultObj)
+                    freeAccessResultFunc(accessResult)
                 } else {
                    throw self.failToFoundFunction
                 }

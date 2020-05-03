@@ -9,47 +9,39 @@ Make sure your `PATH` includes the `$GOPATH/bin` directory, so that your command
 export PATH=$PATH:$GOPATH/bin
 ```
 
-Install [storj-uplink](https://github.com/storj/uplink-c) go package, by running:
-```
-$ go get storj.io/uplink-c
-```
-
-**NOTE**: Please ensure that the Xcode software is installed on your system, so as to build the binding from source.
-
-
 ## Set-up Files
 
 * Add Swift Module in Swift Project
     * Open Xcode
     * Click on File > Swift Packages > Add Package Dependency
     * In New Pop Up window paste [storj-swift](https://github.com/utropicmedia/storj-swift.git) repository link and Click on next
-    * Select Branch from Rules and add branch name master and Click on next
-    * Click on finish
+    * Select Branch from Rules and add branch name master and Click on next button.
+    * Uncheck the checkbox of storj-swift library and then, click on finish button.
+    * Using terminal navigate to the location of the storj-swift library added in project.
+    * Run following command in the terminal
+        ```
+            make
+        ```
+    * In Xcode, General > Frameworks and Libraries Section
+    * Click on + icon and select storj-swift then click on Add button
     **NOTE** : Use *import storj_swift* statment to use Storj Functions
-
-## Create .dylib Manually
-    * Navigate to uplink-c module using terminal
-    * Run following command
-        ```
-        $ go build -v -o libuplinkc.dylib -buildmode=c-shared 
-        ```
-    * Copy *libuplinkc.dylib, libuplinkc.h, uplink_definitions.h  into storj-swift/Sources/Clibuplink/include
-
+    **NOTE** : Storj("") if require change to the location of libuplinkc.dylib .Please refer sample *main.swift* file for example
 
 ## Sample Hello Storj!
 The sample *main.swift* code calls the *storj_swift.swift* file and binding structure so as to do the following:
-* create a new bucket (if it does not exist) desired Storj project
+* create a new bucket on desired Storj project
 * lists all bucket in a Storj project
 * write a file from local system to the created/opened Storj bucket
 * read back the object from the Storj bucket to local system, for verification
 * list all object in a bucket
+* create share access
 * delete object from a bucket
 * delete empty bucket from a Storj project
 
 
 ## Swift-Storj Binding Functions
 
-**NOTE**: After calling a function, please ensure that the function returned an empty error string, before using it further. Please refer the sample *main.swift* file for example.
+**NOTE**: After calling a function, please ensure that the function returned an empty error, before using it further. Please refer the sample *main.swift* file for example.
 
 ### request_Access_With_Passphrase(NSString,NSString,NSString)
     * function requests satellite for a new access grant using a passhprase
@@ -82,7 +74,7 @@ The sample *main.swift* code calls the *storj_swift.swift* file and binding stru
     * output: StringResult
 
 ### free_String_Result(inout StringResult)
-    * function to create new Storj uplink
+    * function to free memory associated with the StringResult
     * pre-requisites: None
     * inputs: StringResult
     * output: None
