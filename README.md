@@ -1,5 +1,7 @@
 # storj-swift binding
 
+### *Developed using RC v1.0.2 storj/uplink-c
+
 ## Initial Set-up
 
 **NOTE**: for Golang
@@ -15,7 +17,7 @@ export PATH=$PATH:$GOPATH/bin
     * Open Xcode
     * Click on File > Swift Packages > Add Package Dependency
     * In New Pop Up window paste [storj-swift](https://github.com/utropicmedia/storj-swift.git) repository link and Click on next
-    * Select Branch from Rules and add branch name master and Click on next button.
+    * Select branch name or version of package and Click on next button.
     * Uncheck the checkbox of storj-swift library and then, click on finish button.
     * Using terminal navigate to the location of the storj-swift library added in project.
     * Run following command in the terminal
