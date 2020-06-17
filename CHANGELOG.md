@@ -1,5 +1,11 @@
 # Storj-swift Changelog
 
+## [1.0.2] - 16-06-2020
+### Changelog:
+* Updated README.md
+* Changed module name
+* Refactored code
+
 ## [1.0.2] - 09-05-2020
 ### Changelog:
 * Updated README.md
