@@ -13,18 +13,18 @@ export PATH=$PATH:$GOPATH/bin
 ## <b>Set-up Files</b>
 
 Add Swift Module in Swift Project
-    * Open Xcode
-    * Click on File > Swift Packages > Add Package Dependency
-    * In New Pop Up window paste [uplink-swift](https://github.com/storj-thirdparty/uplink-swift.git) repository link and Click on next
-    * Select branch name or version of package and then click on next button.
-    * Uncheck the checkbox of uplink-swift library and then, click on finish button.
-    * Using terminal navigate to the location of the uplink-swift library added in project.
-    * Run following command in the terminal
-        ```
-		make
-        ```
-    * In Xcode, General > Frameworks and Libraries Section
-    * Click on + icon and select storj-swift then click on Add button
+* Open Xcode
+* Click on File > Swift Packages > Add Package Dependency
+* In New Pop Up window paste [uplink-swift](https://github.com/storj-thirdparty/uplink-swift.git) repository link and Click on next
+* Select branch name or version of package and then click on next button.
+* Uncheck the checkbox of uplink-swift library and then, click on finish button.
+* Using terminal navigate to the location of the uplink-swift library added in project.
+* Run following command in the terminal
+```
+	make
+```
+* In Xcode, General > Frameworks and Libraries Section
+* Click on + icon and select storj-swift then click on Add button
 >NOTE: Storj("") if required then pass location of libuplinkc.dylib. Please refer sample *main.swift* file for sample.
 
 
