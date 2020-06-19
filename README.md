@@ -1,4 +1,7 @@
 # <b>uplink-swift binding</b>
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a62886560a64453b2d5417393b2305f)](https://app.codacy.com/gh/storj-thirdparty/uplink-swift?utm_source=github.com&utm_medium=referral&utm_content=storj-thirdparty/uplink-swift&utm_campaign=Badge_Grade_Dashboard)
+
 #### *Developed using v1.0.2 storj/uplink-c*
 
 ## <b>Initial Set-up (Important)</b>
