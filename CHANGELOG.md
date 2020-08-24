@@ -1,5 +1,16 @@
 # Storj-swift Changelog
 
+## [1.0.4] - 24-08-2020
+### Changelog:
+* Updated make
+* Updated documentation
+* Updated README.md
+
+## [1.0.3] - 21-07-2020
+### Changelog:
+* Updated docs
+* Add Testing
+
 ## [1.0.2] - 16-06-2020
 ### Changelog:
 * Updated README.md

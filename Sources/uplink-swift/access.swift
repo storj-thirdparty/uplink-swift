@@ -1,68 +1,143 @@
 import Foundation
 import libuplink
-// swiftlint:disable line_length
-extension Storj {
-    mutating public func request_Access_With_Passphrase(satellite: NSString, apiKey: NSString, encryption: NSString)throws -> (AccessResult) {
-        let ptrSatelliteAddress = UnsafeMutablePointer<CChar>(mutating: satellite.utf8String)
-        let ptrAPIKey = UnsafeMutablePointer<CChar>(mutating: apiKey.utf8String)
-        let ptrEncryptionPassphrase = UnsafeMutablePointer<CChar>(mutating: encryption.utf8String)
-        let accessResult = (self.requestAccessWithPassphraseFunc!)(ptrSatelliteAddress, ptrAPIKey, ptrEncryptionPassphrase)
-        return accessResult
-    }
 
-    //* function to parses serialized access grant string
-    //* pre-requisites: None
-    //* inputs: StringKey
-    //* output: AccessResult
-     mutating public func parse_Access(stringKey: NSString)throws -> (AccessResult) {
-         let ptrStringKey = UnsafeMutablePointer<CChar>(mutating: stringKey.utf8String)
-         let accessResult = self.parseAccessFunc!(ptrStringKey)
-         return accessResult
-     }
+//swiftlint:disable line_length
+public class AccessResultStr {
     //
-    //* function requests satellite for a new access grant using a passhprase and config.
-    //* pre-requisites: None
-    //* inputs: None
-    //* output: AccessResult
-    mutating public func config_Request_Access_With_Passphrase(config: Config, satelliteAddress: NSString, apiKey: NSString, encryptionPassphrase: NSString)throws -> (AccessResult) {
-           let ptrSatelliteAddress = UnsafeMutablePointer<CChar>(mutating: satelliteAddress.utf8String)
-           let ptrAPIKey = UnsafeMutablePointer<CChar>(mutating: apiKey.utf8String)
-           let ptrEncryptionPassphrase = UnsafeMutablePointer<CChar>(mutating: encryptionPassphrase.utf8String)
-           let accessResult = self.configRequestAccessWithPassphraseFunc!(config, ptrSatelliteAddress, ptrAPIKey, ptrEncryptionPassphrase)
-           return accessResult
+    var access: Access
+    var uplink: Storj
+    var accessResult: AccessResult?
+    //
+    public init(uplink: Storj, access: Access, accessResult: AccessResult? = nil) {
+        self.access = access
+        self.uplink = uplink
+        if accessResult != nil {
+            self.accessResult = accessResult
+        }
     }
     //
-    //* function to serializes access grant into a string.
-    //* pre-requisites: None
-    //* inputs: Access
-    //* output: StringResult
-    mutating public func access_Serialize(access:inout Access)throws -> (StringResult) {
-       let stringResult = self.accessSerializeFunc!(&access)
-       return stringResult
-   }
-    //
-    //* function frees memory associated with the AccessResult.
-    //* pre-requisites: None
-    //* inputs: AccessResult
-    //* output: None
-   mutating public func free_Access_Result(accessResult:inout AccessResult)throws {
-       self.freeAccessResultFunc!(accessResult)
-   }
-    //
-    //* function creates new access grant with specific permission. Permission will be applied to prefixes when defined.
-    //* pre-requisites: None
-    //* inputs: None
-    //* output: AccessResult
-    mutating public func access_Share(access:inout UnsafeMutablePointer<Access>, permission:inout Permission, prefix:inout UnsafeMutablePointer<SharePrefix>, prefixCount: Int)throws ->(AccessResult) {
-        let accessResult = self.accessShareFunc!(access, permission, prefix, GoInt(prefixCount))
-        return accessResult
+    //function serializes an access grant such that it can be used later with ParseAccess or other tools.
+    //Input : None
+    //Output : SharedString (String)
+    public func serialize()throws -> (String) {
+        do {
+            let stringResult = uplink.accessSerializeFunc!(&self.access)
+            defer {
+                self.uplink.freeStringResultFunc!(stringResult)
+            }
+            //
+            if stringResult.string != nil {
+                return String(validatingUTF8: stringResult.string)!
+            } else {
+                if stringResult.error != nil {
+                    throw storjException(code: Int(stringResult.error.pointee.code), message: String(validatingUTF8: (stringResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Serialized string and error object is nil")
+                }
+            }
+        } catch {
+           throw error
+        }
     }
     //
-    //* function to free memory associated with the StringResult
-    //* pre-requisites: None
-    //* inputs: StringResult
-    //* output: None
-     mutating public func free_String_Result(stringResult:inout StringResult)throws {
-         self.freeStringResultFunc!(stringResult)
-     }
+    //function opens Storj(V3) project using access grant.
+    //Input : None
+    //Output : ProjectResultStr(Object)
+    public func open_Project()throws ->(ProjectResultStr) {
+        do {
+            let projectResult = self.uplink.openProjectFunc!(&self.access)
+            //
+            if projectResult.project != nil {
+                return ProjectResultStr(uplink: self.uplink, project: projectResult.project.pointee, projectResult: projectResult)
+            } else {
+                //
+                if projectResult.error != nil {
+                    throw storjException(code: Int(projectResult.error.pointee.code), message: String(validatingUTF8: (projectResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Project and error object is nil")
+                }
+            }
+        } catch {
+            throw error
+        }
+    }
+    //
+    //function opens Storj(V3) project using access grant and custom configuration.
+    //Input : None
+    //Output : ProjectResultStr(Object)
+    public func config_Open_Project(config: UplinkConfig)throws ->(ProjectResultStr) {
+        do {
+            //
+            var configUplink = Config()
+            configUplink.dial_timeout_milliseconds = config.dial_timeout_milliseconds
+            configUplink.temp_directory = UnsafeMutablePointer<CChar>(mutating: (config.temp_directory as NSString).utf8String)
+            configUplink.user_agent = UnsafeMutablePointer<CChar>(mutating: (config.user_agent as NSString).utf8String)
+            //
+            let projectResult = uplink.configOpenProjectFunc!(configUplink, &self.access)
+            //
+            if projectResult.project != nil {
+                return ProjectResultStr(uplink: self.uplink, project: projectResult.project.pointee, projectResult: projectResult)
+                //
+            } else {
+                //
+                if projectResult.error != nil {
+                    throw storjException(code: Int(projectResult.error.pointee.code), message: String(validatingUTF8: (projectResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Project and error object is nil")
+                }
+            }
+        } catch {
+            throw error
+        }
+    }
+    //
+    //function Share creates a new access grant with specific permissions.
+    //Access grants can only have their existing permissions restricted, and the resulting
+    //access grant will only allow for the intersection of all previous Share calls in the
+    //access grant construction chain.
+    //Prefixes, if provided, restrict the access grant (and internal encryption information)
+    //to only contain enough information to allow access to just those prefixes.
+    //Input : Permission (Object) , sharePrefixListArray (Array) , sharePrefixListArraylength (Int)
+    //Output : AccessResultStr(Object)
+    public func share(permission:inout UplinkPermission, prefix:inout [UplinkSharePrefix])throws ->(AccessResultStr) {
+        //
+        var permissionUplink = Permission()
+        permissionUplink.allow_download = permission.allow_download
+        permissionUplink.allow_upload = permission.allow_upload
+        permissionUplink.allow_list = permission.allow_list
+        permissionUplink.allow_delete = permission.allow_delete
+        permissionUplink.not_after = permission.not_after
+        permissionUplink.not_before = permission.not_before
+        //
+        var sharePrefixArray: [SharePrefix] = []
+        for sharePrefix in prefix {
+            //
+            var sharePrefixUplink = SharePrefix()
+            //
+            sharePrefixUplink.bucket = UnsafeMutablePointer<CChar>(mutating: (sharePrefix.bucket as NSString).utf8String)
+            //
+            sharePrefixUplink.prefix = UnsafeMutablePointer<CChar>(mutating: (sharePrefix.prefix as NSString).utf8String)
+            //
+            sharePrefixArray.append(sharePrefixUplink)
+        }
+        //
+        let ptrTosharePrefix = UnsafeMutablePointer<SharePrefix>.allocate(capacity: sharePrefixArray.count)
+        //
+        ptrTosharePrefix.initialize(from: &sharePrefixArray, count: sharePrefixArray.count)
+        //
+        let accessResult = self.uplink.accessShareFunc!(&self.access, permissionUplink, ptrTosharePrefix, GoInt(sharePrefixArray.count))
+        //
+        //
+        if accessResult.access != nil {
+            let accessResultStr = AccessResultStr(uplink: self.uplink, access: accessResult.access.pointee, accessResult: accessResult)
+             return accessResultStr
+        } else {
+            if accessResult.error != nil {
+                throw storjException(code: Int(accessResult.error.pointee.code), message: String(validatingUTF8: (accessResult.error.pointee.message!))!)
+            } else {
+                throw storjException(code: 9999, message: "Access and error object is nil")
+            }
+        }
+        //
+    }
 }

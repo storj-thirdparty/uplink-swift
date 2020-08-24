@@ -1,10 +1,18 @@
 steps:
-- name: 'gcr.io/${PROJECT_ID}/swift:latest'
-  args: ['--version']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/swift', '.']
+# Storing storj API key in file
+- name: gcr.io/cloud-builders/gcloud
+  entrypoint: 'bash'
+  args: ["-c","gcloud secrets versions access latest --secret=StorjAPIKey >>secret.txt" ]
+# Running make commnad
 - name: 'gcr.io/${PROJECT_ID}/swift'
-  args: ['--version']
-- name: 'gcr.io/${PROJECT_ID}/swift:latest-dev'
-  args: ['--version']
-- name: 'gcr.io/${PROJECT_ID}/swift:4.2'
-  args: ['--version']
+  entrypoint: 'bash'
+  args: ["-c","make"]
+# Running testcases
+- name: 'gcr.io/${PROJECT_ID}/swift'
+  entrypoint: 'swift'
+  args: ["test"]
+tags: ['cloud-builders-community']
+images: ['gcr.io/$PROJECT_ID/swift']
 tags: ['cloud-builders-community']

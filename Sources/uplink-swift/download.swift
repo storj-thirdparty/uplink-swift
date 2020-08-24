@@ -1,59 +1,82 @@
 import Foundation
 import libuplink
-// swiftlint:disable line_length
-extension Storj {
-    //* function frees memory associated with the DownloadResult.
-    //* pre-requisites: None
-    //* inputs: DownloadResult
-    //* output: None
-     mutating public func free_Download_Result(downloadResult:inout DownloadResult)throws {
-         self.freeDownloadResultFunc!(downloadResult)
-     }
+
+//
+//swiftlint:disable line_length
+public class DownloadResultStr {
+    var download: Download
+    var uplink: Storj
+    var downloadResult: DownloadResult?
+
+    public init(uplink: Storj, download: Download, downloadResult: DownloadResult? = nil) {
+        self.download = download
+        self.uplink = uplink
+        if downloadResult != nil {
+            self.downloadResult = downloadResult
+        }
+    }
     //
-    //* function frees memory associated with the ReadResult.
-    //* pre-requisites: None
-    //* inputs: ReadResult
-    //* output: None
-     mutating public func free_Read_Result(readResult:inout ReadResult)throws {
-         self.freeReadResultFunc!(readResult)
-     }
+    // function returns information about the downloaded object.
+    // Input : None
+    // Output : ObjectInfo (UplinkObject)
+    public func info() throws ->(UplinkObject) {
+        do {
+            let objectResult = self.uplink.downloadInfoFunc!(&self.download)
+            //
+            if objectResult.object != nil {
+                return uplinkObjectToSwift(uplinkObject: objectResult.object.pointee)
+            }
+            //
+            if objectResult.error != nil {
+                throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
+            }
+            //
+            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+        } catch {
+            throw error
+        }
+    }
     //
-    //* function returns metadata of downloading object
-    //* pre-requisites: download_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Download>
-    //* output: ObjectResult
-     mutating public func download_Info(download:inout UnsafeMutablePointer<Download>)throws -> (ObjectResult) {
-         let objectResult =  self.downloadInfoFunc!(download)
-         return objectResult
-     }
-    //
-    //* function closes download
-    //* pre-requisites: download_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Download>
-    //* output: UnsafeMutablePointer<Error>? or nil
-     mutating public func close_Download(download:inout UnsafeMutablePointer<Download>)throws -> (UnsafeMutablePointer<Error>?) {
-         let error =  self.closeDownloadFunc!(download)
-         return error
-     }
-    //
-    //* function reads byte stream from storj V3
-    //* pre-requisites: download_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Download> ,Pointer to array buffer, Size of Buffer
-    //* output: ReadResult
-     mutating public func download_Read(download:inout UnsafeMutablePointer<Download>, data: UnsafeMutablePointer<UInt8>, sizeToWrite: Int)throws -> (ReadResult) {
-         let readResult = self.downloadReadFunc!(download, data, sizeToWrite)
-         return readResult
-     }
-    //
-    //* function for dowloading object
-    //* pre-requisites: open_Project function has been already called
-    //* inputs: UnsafeMutablePointer<Project> ,Object Name on storj V3 and UnsafeMutablePointer<DownloadOptions>
-    //* output: DownloadResult
-    // swiftlint:disable:next line_length
-     mutating public func download_Object(project:inout UnsafeMutablePointer<Project>, storjBucketName: NSString, storjObjectName: NSString, downloadOptions: UnsafeMutablePointer<DownloadOptions>)throws -> (DownloadResult) {
-         let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjObjectName.utf8String)
-         let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: storjBucketName.utf8String)
-         let downloadResult = self.downloadObjectFunc!(project, ptrToBucketName, ptrStorjPath, downloadOptions)
-         return (downloadResult)
-     }
+    // function closes the download.
+    // Input : None
+    // Output : None
+    public func close() throws {
+        do {
+            let error = self.uplink.closeDownloadFunc!(&self.download)
+            //
+            defer {
+                if error != nil {
+                    self.uplink.freeErrorFunc!(error!)
+
+                }
+            }
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+        } catch {
+            throw error
+        }
+    }
+    // function downloads up to len size_to_read bytes from the object's data stream.
+    // It returns the data_read in bytes and number of bytes read
+    // Input : Buffer (UnsafeMutablePointer<UInt8>), Buffer length (Int)
+    // Output : ReadResult (Int)
+    public func read(data: UnsafeMutablePointer<UInt8>, sizeToWrite: Int) throws ->(Int) {
+        do {
+            let readResult = self.uplink.downloadReadFunc!(&self.download, data, sizeToWrite)
+            //
+            if readResult.error == nil {
+                return readResult.bytes_read
+            } else {
+                if readResult.error != nil {
+                throw storjException(code: Int(readResult.error.pointee.code), message: String(validatingUTF8: (readResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Read result and error is nil")
+                }
+            }
+        } catch {
+            throw error
+        }
+    }
+
 }
