@@ -46,11 +46,6 @@ mutating public func config_Request_Access_With_Passphrase(config: Config, satel
 mutating public func access_Serialize(access: inout Access) throws -> (StringResult)
 ```
 
-### `free_Access_Result(accessResult:)`
-
-``` swift
-mutating public func free_Access_Result(accessResult: inout AccessResult) throws
-```
 
 ### `access_Share(access:permission:prefix:prefixCount:)`
 
@@ -68,36 +63,6 @@ mutating public func free_String_Result(stringResult: inout StringResult) throws
 
 ``` swift
 mutating public func free_Bucket_Result(bucketResult: inout BucketResult) throws
-```
-
-### `free_Bucket(bucket:)`
-
-``` swift
-mutating public func free_Bucket(bucket: inout UnsafeMutablePointer<Bucket>) throws
-```
-
-### `free_Bucket_Iterator(bucketIterator:)`
-
-``` swift
-mutating public func free_Bucket_Iterator(bucketIterator: inout UnsafeMutablePointer<BucketIterator>) throws
-```
-
-### `bucket_Iterator_Err(bucketIterator:)`
-
-``` swift
-mutating public func bucket_Iterator_Err(bucketIterator: inout UnsafeMutablePointer<BucketIterator>) throws -> (UnsafeMutablePointer<Error>?)
-```
-
-### `bucket_Iterator_Item(bucketIterator:)`
-
-``` swift
-mutating public func bucket_Iterator_Item(bucketIterator: inout UnsafeMutablePointer<BucketIterator>) throws -> (UnsafeMutablePointer<Bucket>?)
-```
-
-### `bucket_Iterator_Next(bucketIterator:)`
-
-``` swift
-mutating public func bucket_Iterator_Next(bucketIterator: inout UnsafeMutablePointer<BucketIterator>) throws -> (Bool)
 ```
 
 ### `list_Buckets(project:listBucketsOptionsObj:)`

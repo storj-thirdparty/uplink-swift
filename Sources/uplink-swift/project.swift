@@ -1,38 +1,40 @@
-import Foundation
 import libuplink
-// swiftlint:disable line_length
-extension Storj {
-      //* function frees memory associated with the ProjectResult.
-      //* pre-requisites: None
-      //* inputs: ProjectResult
-      //* output: None
-       mutating public func free_Project_Result(projectResult:inout ProjectResult)throws {
-           self.freeProjectResultFunc!(projectResult)
-       }
+
+//swiftlint:disable line_length
+public class ProjectResultStr {
     //
-    //* function close the project.
-    //* pre-requisites: open_Project function has been already called
-    //* inputs: None
-    //* output: UnsafeMutablePointer<Error>? or nil
-     mutating public func close_Project(project:inout UnsafeMutablePointer<Project>)throws -> (UnsafeMutablePointer<Error>?) {
-         let error = self.closeProjectFunc!(project)
-         return error
-     }
+    var project: Project
+    var uplink: Storj
+    var projectResult: ProjectResult?
     //
-    //* function to open project using access grant and config
-    //* pre-requisites: request_Access_With_Passphrase or parse_Access function has been already called
-    //* inputs: UnsafeMutablePointer<Access>
-    //* output: ProjectResult
-     mutating public func config_Open_Project(config: Config, access:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
-         let projectResult = self.configOpenProjectFunc!(config, access)
-         return projectResult
-     }
-    //* function to open project using access grant.
-      //* pre-requisites:  request_Access_With_Passphrase or parse_Access function has been already called
-      //* inputs: UnsafeMutablePointer<Access>
-      //* output: ProjectResult
-       mutating public func open_Project(access:inout UnsafeMutablePointer<Access>)throws -> (ProjectResult) {
-        let projectResult = self.openProjectFunc!(access)
-           return projectResult
-       }
+    public init(uplink: Storj, project: Project, projectResult: ProjectResult? = nil) {
+        self.project = project
+        self.uplink = uplink
+        if projectResult != nil {
+            self.projectResult = projectResult
+        }
+    }
+    //
+    // function closes the project and all associated resources.
+    // Input : None
+    // Output : None
+    public func close()throws {
+        do {
+            //
+            let error = self.uplink.closeProjectFunc!(&self.project)
+            defer {
+                self.uplink.freeProjectResultFunc!(self.projectResult!)
+                if error != nil {
+                    self.uplink.freeErrorFunc!(error!)
+
+                }
+            }
+            //
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+        } catch {
+            throw error
+        }
+    }
 }

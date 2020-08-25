@@ -1,76 +1,152 @@
 import Foundation
 import libuplink
-// swiftlint:disable line_length
-extension Storj {
-    //* function frees memory associated with the UploadResult.
-    //* pre-requisites: None
-    //* inputs: UploadResult
-    //* output: None
-     mutating public func free_Upload_Result(uploadResult:inout UploadResult)throws {
-         self.freeUploadResultFunc!(uploadResult)
-     }
-    //* function frees memory associated with the WriteResult.
-    //* pre-requisites: None
-    //* inputs: WriteResult
-    //* output: None
-     mutating public func free_Write_Result(writeResult:inout WriteResult)throws {
-         self.freeWriteResultFunc!(writeResult)
-     }
+
+//swiftlint:disable line_length
+public class UploadResultStr {
+    var upload: Upload
+    var uplink: Storj
+    var uploadResult: UploadResult?
     //
-    //* function return metadata of uploading object
-    //* pre-requisites: upload_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Upload>
-    //* output: ObjectResult
-     mutating public func upload_Info(upload:inout UnsafeMutablePointer<Upload>)throws -> (ObjectResult) {
-         let objectResult =  self.uploadInfoFunc!(upload)
-         return objectResult
-     }
     //
-    //* function to set custom metadata on storj V3 object
-    //* pre-requisites: upload_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Upload> ,CustomMetadata
-    //* output: UnsafeMutablePointer<Error>? or nil
-     mutating public func upload_Set_Custom_Metadata(upload:inout UnsafeMutablePointer<Upload>, customMetaDataObj: CustomMetadata)throws -> (UnsafeMutablePointer<Error>?) {
-         let error = self.uploadSetCustomMetadataFunc!(upload, customMetaDataObj)
-         return error
-     }
+    public init(uplink: Storj, upload: Upload, uploadResult: UploadResult? = nil) {
+        self.upload = upload
+        self.uplink = uplink
+        if uploadResult != nil {
+            self.uploadResult = uploadResult
+        }
+    }
     //
-    //* function to abort current upload
-    //* pre-requisites: upload_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Upload>
-    //* output: UnsafeMutablePointer<Error>? or nil
-     mutating public func upload_Abort(upload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
-         let error = self.uploadAbortFunc!(upload)
-         return error
-     }
+    // function uploads bytes data passed as parameter to the object's data stream.
+    // Input : Buffer (UnsafeMutablePointer<UInt8>), Buffer length (Int)
+    // Output : WriteResult (Int)
+    public func write(data: UnsafeMutablePointer<UInt8>, sizeToWrite: Int) throws ->(Int) {
+        do {
+            //
+            var writeResult = self.uplink.uploadWriteFunc!(&self.upload, data, sizeToWrite)
+            //
+            defer {
+                self.uplink.freeWriteResultFunc!(writeResult)
+            }
+            //
+            if writeResult.error == nil {
+                return writeResult.bytes_written
+            } else {
+                if writeResult.error != nil {
+                throw storjException(code: Int(writeResult.error.pointee.code), message: String(validatingUTF8: (writeResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Write result and error is nil")
+                }
+            }
+        } catch {
+            throw error
+        }
+    }
     //
-      //* function to commits the uploaded data.
-      //* pre-requisites: upload_Object function has been already called
-      //* inputs: UnsafeMutablePointer<Upload>
-      //* output: UnsafeMutablePointer<Error>? or nil
-       mutating public func upload_Commit(upload:inout UnsafeMutablePointer<Upload>)throws -> (UnsafeMutablePointer<Error>?) {
-           let error = self.uploadCommitFunc!(upload)
-           return (error)
-       }
+    // function returns the last information about the uploaded object.
+    // Input : None
+    // Output : ObjectInfo
+    public func info() throws ->(UplinkObject) {
+        do {
+            let objectResult = self.uplink.uploadInfoFunc!(&self.upload)
+            //
+            if objectResult.object != nil {
+                return uplinkObjectToSwift(uplinkObject: objectResult.object.pointee)
+            }
+            //
+            if objectResult.error != nil {
+                throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
+            }
+            //
+            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+        } catch {
+            throw error
+        }
+    }
     //
-    //* function to upload len(p) bytes from p to the object's data stream.
-    //* pre-requisites: upload_Object function has been already called
-    //* inputs: UnsafeMutablePointer<Upload> ,Pointer to buffer array , Len of buffer
-    //* output: WriteResult
-     mutating public func upload_Write(upload:inout UnsafeMutablePointer<Upload>, data: UnsafeMutablePointer<UInt8>, sizeToWrite: Int)throws -> (WriteResult) {
-         let writeResult = self.uploadWriteFunc!(upload, data, sizeToWrite)
-         return (writeResult)
-     }
+    // function aborts an ongoing upload.
+    // Input : None
+    // Output : ObjectInfo
+    public func abort() throws {
+        do {
+            //
+            var error = self.uplink.uploadAbortFunc!(&self.upload)
+            //
+            defer {
+                if error != nil {
+                    self.uplink.freeErrorFunc!(error!)
+
+                }
+            }
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+            //
+        } catch {
+            throw error
+        }
+    }
     //
-    //* function to start an upload to the specified key.
-    //* pre-requisites: open_Project function has been already called
-    //* inputs: UnsafeMutablePointer<Project>, Object name and UnsafeMutablePointer<UploadOptions>
-    //* output: UploadResult
-    // swiftlint:disable:next line_length
-     mutating public func upload_Object(project:inout UnsafeMutablePointer<Project>, storjBucketName: NSString, storjUploadPath: NSString, uploadOptions: UnsafeMutablePointer<UploadOptions>)throws -> (UploadResult) {
-         let ptrStorjPath = UnsafeMutablePointer<CChar>(mutating: storjUploadPath.utf8String)
-         let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: storjBucketName.utf8String)
-         let uploadResult = self.uploadObjectFunc!(project, ptrToBucketName, ptrStorjPath, uploadOptions)
-         return (uploadResult)
-     }
+    // function commits the uploaded data.
+    // Input : None
+    // Output : None
+    public func commit() throws {
+        do {
+            //
+            var error = self.uplink.uploadCommitFunc!(&self.upload)
+            //
+            defer {
+                if error != nil {
+                    self.uplink.freeErrorFunc!(error!)
+                }
+            }
+            //
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+        } catch {
+            throw error
+        }
+    }
+    //
+    // function to set custom meta information while uploading data
+    // Input : customMetadata (UplinkCustomMetadata)
+    // Output : None
+    public func set_Custom_Metadata(customMetadata:inout UplinkCustomMetadata) throws {
+        do {
+
+            var entriesArray: [CustomMetadataEntry] = []
+            var customMetaDataUplink = CustomMetadata()
+            if customMetadata.count > 0 {
+                for entry in customMetadata.entries {
+                    var customMetaDataUplink = CustomMetadataEntry()
+                    customMetaDataUplink.key = UnsafeMutablePointer<CChar>(mutating: (entry.key as NSString).utf8String)
+                    customMetaDataUplink.key_length = entry.key_length
+                    customMetaDataUplink.value = UnsafeMutablePointer<CChar>(mutating: (entry.value as NSString).utf8String)
+                    customMetaDataUplink.value_length = entry.value_length
+                    entriesArray.append(customMetaDataUplink)
+                }
+            }
+            //
+            let ptrToEntriesArray = UnsafeMutablePointer<CustomMetadataEntry>.allocate(capacity: entriesArray.count)
+            //
+            ptrToEntriesArray.initialize(from: &entriesArray, count: entriesArray.count)
+            //
+            customMetaDataUplink.entries = ptrToEntriesArray
+            customMetaDataUplink.count = entriesArray.count
+            //
+            let error = self.uplink.uploadSetCustomMetadataFunc!(&self.upload, customMetaDataUplink)
+            //
+            defer {
+                if error != nil {
+                    self.uplink.freeErrorFunc!(error!)
+
+                }
+            }
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+        } catch {
+            throw error
+        }
+    }
 }

@@ -1,6 +1,7 @@
 import Foundation
 import libuplink
-// swiftlint:disable line_length
+
+//swiftlint:disable line_length
 extension Storj {
     //Creating typesalias of all the functions
     typealias ParseAccess = @convention(c)(UnsafeMutablePointer<Int8>?) -> (AccessResult)
@@ -23,13 +24,13 @@ extension Storj {
     //
     typealias DeleteBucket = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?) -> (BucketResult)
     //
-    typealias ListBuckets = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<ListBucketsOptions>) ->  (UnsafeMutablePointer<BucketIterator>)
+    typealias ListBuckets = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<ListBucketsOptions>) ->  (UnsafeMutablePointer<BucketIterator>?)
     //
     typealias BucketIteratorNext = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (Bool)
     //
-    typealias BucketIteratorErr = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Error>)
+    typealias BucketIteratorErr = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Error>?)
     //
-    typealias BucketIteratorItem = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Bucket>)
+    typealias BucketIteratorItem = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Bucket>?)
     //
     typealias FreeBucketIterator = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> Void
     //
@@ -47,13 +48,13 @@ extension Storj {
     //
     typealias FreeReadResult = @convention(c)(ReadResult) -> Void
     //
-    typealias CloseDownload  = @convention(c)(UnsafeMutablePointer<Download>) -> (UnsafeMutablePointer<Error>)
+    typealias CloseDownload  = @convention(c)(UnsafeMutablePointer<Download>) -> (UnsafeMutablePointer<Error>?)
     //
     typealias FreeDownloadResult = @convention(c)(DownloadResult) -> Void
     //
     typealias FreeBucketResult = @convention(c)(BucketResult) -> Void
     //
-    typealias FreeError = @convention(c)(UnsafeMutablePointer<Error>) -> Void
+    typealias FreeError = @convention(c)(UnsafeMutablePointer<Error>?) -> Void
     //
     typealias StatObject = @convention(c)(UnsafeMutablePointer<Project>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (ObjectResult)
     //
@@ -63,19 +64,19 @@ extension Storj {
     //
     typealias FreeObject = @convention(c)(UnsafeMutablePointer<Object>) -> Void
     //
-    typealias ListObjects = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<ListObjectsOptions>) -> (UnsafeMutablePointer<ObjectIterator>)
+    typealias ListObjects = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<ListObjectsOptions>) -> (UnsafeMutablePointer<ObjectIterator>?)
     //
     typealias ObjectIteratorNext = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (Bool)
     //
-    typealias ObjectIteratorErr = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Error>)
+    typealias ObjectIteratorErr = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Error>?)
     //
-    typealias ObjectIteratorItem = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Object>)
+    typealias ObjectIteratorItem = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Object>?)
     //
     typealias FreeObjectIterator = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> Void
     //
     typealias OpenProject = @convention(c)(UnsafeMutablePointer<Access>) -> (ProjectResult)
     //
-    typealias CloseProject = @convention(c)(UnsafeMutablePointer<Project>) -> (UnsafeMutablePointer<Error>)
+    typealias CloseProject = @convention(c)(UnsafeMutablePointer<Project>) -> (UnsafeMutablePointer<Error>?)
     //
     typealias FreeProjectResult = @convention(c)(ProjectResult) -> Void
     //
@@ -83,11 +84,11 @@ extension Storj {
     //
     typealias UploadWrite = @convention(c)(UnsafeMutablePointer<Upload>, UnsafeMutableRawPointer?, Int) -> (WriteResult)
     //
-    typealias UploadCommit = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>)
+    typealias UploadCommit = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>?)
     //
-    typealias UploadAbort = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>)
+    typealias UploadAbort = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>?)
     //
-    typealias UploadSetCustomMetadata = @convention(c)(UnsafeMutablePointer<Upload>, CustomMetadata) -> (UnsafeMutablePointer<Error>)
+    typealias UploadSetCustomMetadata = @convention(c)(UnsafeMutablePointer<Upload>, CustomMetadata) -> (UnsafeMutablePointer<Error>?)
     //
     typealias FreeWriteResult = @convention(c)(WriteResult) -> Void
     //
