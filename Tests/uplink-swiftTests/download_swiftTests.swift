@@ -26,7 +26,7 @@ extension UplinkswiftTests {
     func downloadFile(project:inout ProjectResultStr, downloadFileSizeOnStorj: Int64) {
         do {
             //Setting upload options
-            var downloadOptions = UplinkDownloadOptions(offset: 0, length: -1)
+            var downloadOptions = DownloadOptions(offset: 0, length: -1)
             //
             let downloadResult = try  project.download_Object(bucket: self.storjBucket, key: self.storjDownloadPath, downloadOptions: &downloadOptions)
             //

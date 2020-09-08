@@ -7,7 +7,7 @@ extension UplinkswiftTests {
     func uploadObject(project :inout ProjectResultStr) {
         do {
             //
-            var uploadOptions = UplinkUploadOptions()
+            var uploadOptions = UploadOptions()
             //
             let upload = try project.upload_Object(bucket: self.storjBucket, key: self.storjUploadPath, uploadOptions: &uploadOptions)
             // Reading data from the file for uploading on storj V3
@@ -40,12 +40,12 @@ extension UplinkswiftTests {
             //
             let keyString: String = "change-me-to-desired-key"
             //
-            let entries = UplinkCustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
+            let entries = CustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
             //
             let entriesArray = [entries]
-            var customMetaDataObj = UplinkCustomMetadata(entries: entriesArray, count: entriesArray.count)
+            var customMetaDataObj = CustomMetadata(entries: entriesArray, count: entriesArray.count)
             //
-            try upload.set_Custom_Metadata( customMetadata: &customMetaDataObj)
+            try upload.set_Custom_Metadata(customMetadata: &customMetaDataObj)
             //
             try  upload.commit()
 
