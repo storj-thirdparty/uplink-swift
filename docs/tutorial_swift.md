@@ -100,8 +100,8 @@ Once it is ensured that bucket exists on Storj V3 network, you can list all the 
 After getting the bucketIterator, you can run a loop to list buckets one by one as done in this example.
 
 ```swift
-var listBucketsOptions = UplinkListBucketsOptions(cursor: "")
-let bucketList = try project.list_Buckets(UplinkListBucketsOptions: &listBucketsOptions)
+var listBucketsOptions = ListBucketsOptions(cursor: "")
+let bucketList = try project.list_Buckets(ListBucketsOptions: &listBucketsOptions)
 ```
 
 ## Step 9: Upload
@@ -124,7 +124,7 @@ To stream the data to storj you need to create a file stream or handle which can
 ```swift
 var totalBytesRead = 0
 var sizeToWrite = 0
-var uploadOptions = UplinkUploadOptions()
+var uploadOptions = UploadOptions()
 var upload = try project.upload_Object(bucket: bucketName, key: storjUploadPath, uploadOptions: &uploadOptions)
 ```
 
@@ -235,7 +235,7 @@ To list all the objects that are present in your bucket on Storj V3 network, fol
 
 
 ```swift
-var listObjectsOptions = UplinkListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
+var listObjectsOptions = ListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
 //
 let objectslist = try project.list_Objects(bucket: storjBucket, listObjectsOptions: &listObjectsOptions)
 
@@ -252,11 +252,11 @@ To generate shared access, do the following:
 
 ```swift
 // set permissions for the new access to be created
-var permission = UplinkPermission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
+var permission = Permission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
 //
-let sharePrefix = UplinkSharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
+let sharePrefix = SharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
 //
-var sharePrefixArray: [UplinkSharePrefix] = []
+var sharePrefixArray: [SharePrefix] = []
 sharePrefixArray.append(sharePrefix)
 //
 let accessShareResult = try access.share(permission: &permission, prefix: &sharePrefixArray)
