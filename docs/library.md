@@ -104,7 +104,36 @@ var Config =  config()
 
 var access = try storjSwift.config_request_Access_With_Passphrase(config: Config, satellite: SatelliteURL, apiKey: storjApiKey, encryption: storjEncryption)
 ```
-    
+## derive_Encryption_Key(passphrase,salt)
+
+#### Description:
+
+derive_Encryption_Key function derives a salted encryption key for passphrase using the salt.
+This function is useful for deriving a salted encryption key for users when
+implementing multitenancy in a single app bucket.
+
+##### Arguments:
+
+| arguments | Description |  Type |
+| --- | --- | --- |
+|<code>passphrase</code>| Encryption phassphrase | <code>String</code> |
+|<code>salt</code>|  salt | <code>Array</code> |
+
+
+##### Usage Example:
+```swift
+do {
+
+var salt: [UInt8] = []
+var storjEncryption: String = "change-me-to-desired-encryptionphassphrase"
+
+var encryption = try uplink.derive_Encryption_Key(passphrase: storjEncryption, salt: &salt)
+
+} catch {
+
+}
+```
+
 ## serialize()
 
 ##### Description:
@@ -123,6 +152,34 @@ let accessString = try accessShareResult.serialize()
 
 }
 ```
+ 
+ ## access_Override_Encryption_Key(bucket,prefix,encryptionKey)
+ 
+ #### Description:
+ function overrides the root encryption key for the prefix in bucket with encryptionKey.
+ This function is useful for overriding the encryption key in user-specific access grants when implementing multitenancy in a single app bucket.
+ 
+ ##### Arguments:
+
+ | arguments | Description |  Type |
+ | --- | --- | --- |
+  |<code>bucket</code>| Storj bucketname | <code>String</code> |
+ |<code>passphrase</code>| Encryption phassphrase | <code>String</code> |
+ |<code>encryptionKey</code>|  encryptionKey | <code>UplinkEncryptionKeyResult</code> |
+ 
+ ##### Usage Example:
+ 
+ ```swift
+ do {
+ //
+ let storjBucket = "change-me-to-desired-bucket-name"
+ let prefix = "change-me-to-desired-prefix-with-/"
+ 
+ try parsedAccess.access_Override_Encryption_Key(bucket: storjBucket, prefix: prefix, encryptionKey: encryption)
+ } catch {
+ 
+}
+ ```
  
 ## share(inout UplinkPermission, inout UnsafeMutablePointer(UplinkSharePrefix), Int)
 

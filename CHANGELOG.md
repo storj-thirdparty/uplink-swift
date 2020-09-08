@@ -1,10 +1,8 @@
 # Storj-swift Changelog
 
-## [1.0.4] - 24-08-2020
+## [1.0.4] - 07-08-2020
 ### Changelog:
-* Updated make
-* Updated documentation
-* Updated README.md
+* Updated swift binding code according uplink-c v1.1.0 master branch
 
 ## [1.0.3] - 21-07-2020
 ### Changelog:

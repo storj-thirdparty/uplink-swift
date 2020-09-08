@@ -3,12 +3,12 @@ import libuplink
 
 //swiftlint:disable line_length
 public class UploadResultStr {
-    var upload: Upload
+    var upload: UplinkUpload
     var uplink: Storj
-    var uploadResult: UploadResult?
+    var uploadResult: UplinkUploadResult?
     //
     //
-    public init(uplink: Storj, upload: Upload, uploadResult: UploadResult? = nil) {
+    public init(uplink: Storj, upload: UplinkUpload, uploadResult: UplinkUploadResult? = nil) {
         self.upload = upload
         self.uplink = uplink
         if uploadResult != nil {
@@ -45,7 +45,7 @@ public class UploadResultStr {
     // function returns the last information about the uploaded object.
     // Input : None
     // Output : ObjectInfo
-    public func info() throws ->(UplinkObject) {
+    public func info() throws ->(Object) {
         do {
             let objectResult = self.uplink.uploadInfoFunc!(&self.upload)
             //
@@ -57,7 +57,7 @@ public class UploadResultStr {
                 throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
             }
             //
-            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+            return Object(key: "", is_prefix: false, system: SystemMetadata(), custom: CustomMetadata(entries: [], count: 0))
         } catch {
             throw error
         }
@@ -111,14 +111,14 @@ public class UploadResultStr {
     // function to set custom meta information while uploading data
     // Input : customMetadata (UplinkCustomMetadata)
     // Output : None
-    public func set_Custom_Metadata(customMetadata:inout UplinkCustomMetadata) throws {
+    public func set_Custom_Metadata(customMetadata:inout CustomMetadata) throws {
         do {
 
-            var entriesArray: [CustomMetadataEntry] = []
-            var customMetaDataUplink = CustomMetadata()
+            var entriesArray: [UplinkCustomMetadataEntry] = []
+            var customMetaDataUplink = UplinkCustomMetadata()
             if customMetadata.count > 0 {
                 for entry in customMetadata.entries {
-                    var customMetaDataUplink = CustomMetadataEntry()
+                    var customMetaDataUplink = UplinkCustomMetadataEntry()
                     customMetaDataUplink.key = UnsafeMutablePointer<CChar>(mutating: (entry.key as NSString).utf8String)
                     customMetaDataUplink.key_length = entry.key_length
                     customMetaDataUplink.value = UnsafeMutablePointer<CChar>(mutating: (entry.value as NSString).utf8String)
@@ -127,7 +127,7 @@ public class UploadResultStr {
                 }
             }
             //
-            let ptrToEntriesArray = UnsafeMutablePointer<CustomMetadataEntry>.allocate(capacity: entriesArray.count)
+            let ptrToEntriesArray = UnsafeMutablePointer<UplinkCustomMetadataEntry>.allocate(capacity: entriesArray.count)
             //
             ptrToEntriesArray.initialize(from: &entriesArray, count: entriesArray.count)
             //

@@ -64,7 +64,7 @@ do {
     print("Bucket information :\nBucket created : ", unixTimeConvert(unixTime: statBucketInfo.created))
     //
     // Listing buckets
-    var listBucketsOptions = UplinkListBucketsOptions(cursor: "")
+    var listBucketsOptions = ListBucketsOptions(cursor: "")
     let bucketList = try project.list_Buckets(listBucketsOptions: &listBucketsOptions)
     //
     print("\nListing buckets...")
@@ -92,7 +92,7 @@ do {
     //
     downloadObject(project: &project, bucketName: storjBucket, localFullFileLocationToStore: localFullFileLocationToStore, storjDownloadPath: storjDownloadPath)
     //
-    var listObjectsOptions = UplinkListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
+    var listObjectsOptions = ListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
     //
     let objectslist = try project.list_Objects(bucket: storjBucket, listObjectsOptions: &listObjectsOptions)
     print("\nList object")
@@ -103,11 +103,11 @@ do {
     //
     print("\nCreating share access")
     //
-    var permission = UplinkPermission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
+    var permission = Permission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
     //
-    let sharePrefix = UplinkSharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
+    let sharePrefix = SharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
     //
-    var sharePrefixArray: [UplinkSharePrefix] = []
+    var sharePrefixArray: [SharePrefix] = []
     sharePrefixArray.append(sharePrefix)
     //
     let accessShareResult = try access.share(permission: &permission, prefix: &sharePrefixArray)
@@ -118,6 +118,23 @@ do {
     print(accessString)
     //
     let parsedAccess = try uplink.parse_Access(stringKey: accessString)
+    //
+    var salt: [UInt8] = [4, 5, 6]
+    //
+    print("Deriving encryption key")
+    //
+    var encryption = try uplink.derive_Encryption_Key(passphrase: storjEncryption, salt: &salt)
+    //
+    let prefix = "change-me-to-desired-prefix-with-/"
+    //
+    print("Overriding Encryption key")
+    //
+    try parsedAccess.access_Override_Encryption_Key(bucket: storjBucket, prefix: prefix, encryptionKey: encryption)
+    //
+    //
+    defer {
+        uplink.free_Encryption_Key_Result(encryptionResult: &encryption)
+    }
     //
     print("\nOpening project using shared access")
     var projectparsed = try parsedAccess.open_Project()

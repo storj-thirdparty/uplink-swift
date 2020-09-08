@@ -180,5 +180,17 @@ extension Storj {
         if self.freeBucketFunc == nil {
             throw storjException(code: 9999, message: "Failed to load free upload bucket function")
         }
+        //
+        if self.accessOverrideEncryptionKeyFunc == nil {
+            throw storjException(code: 9999, message: "Failed to load access override encryption key function")
+        }
+        //
+        if self.deriveEncryptionKeyFunc == nil {
+            throw storjException(code: 9999, message: "Failed to load derive encryption key function")
+        }
+        //
+        if self.freeEncryptionKeyResultFunc == nil {
+            throw storjException(code: 9999, message: "Failed to load free encryption key result function")
+        }
     }
 }

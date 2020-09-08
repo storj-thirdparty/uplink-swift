@@ -4,11 +4,11 @@ import libuplink
 //swiftlint:disable line_length
 public class AccessResultStr {
     //
-    var access: Access
+    var access: UplinkAccess
     var uplink: Storj
-    var accessResult: AccessResult?
+    var accessResult: UplinkAccessResult?
     //
-    public init(uplink: Storj, access: Access, accessResult: AccessResult? = nil) {
+    public init(uplink: Storj, access: UplinkAccess, accessResult: UplinkAccessResult? = nil) {
         self.access = access
         self.uplink = uplink
         if accessResult != nil {
@@ -65,13 +65,13 @@ public class AccessResultStr {
     //function opens Storj(V3) project using access grant and custom configuration.
     //Input : None
     //Output : ProjectResultStr(Object)
-    public func config_Open_Project(config: UplinkConfig)throws ->(ProjectResultStr) {
+    public func config_Open_Project(config: Config)throws ->(ProjectResultStr) {
         do {
             //
-            var configUplink = Config()
+            var configUplink = UplinkConfig()
             configUplink.dial_timeout_milliseconds = config.dial_timeout_milliseconds
-            configUplink.temp_directory = UnsafeMutablePointer<CChar>(mutating: (config.temp_directory as NSString).utf8String)
-            configUplink.user_agent = UnsafeMutablePointer<CChar>(mutating: (config.user_agent as NSString).utf8String)
+            configUplink.temp_directory = UnsafePointer<CChar>((config.temp_directory as NSString).utf8String)
+            configUplink.user_agent = UnsafePointer<CChar>((config.user_agent as NSString).utf8String)
             //
             let projectResult = uplink.configOpenProjectFunc!(configUplink, &self.access)
             //
@@ -99,9 +99,9 @@ public class AccessResultStr {
     //to only contain enough information to allow access to just those prefixes.
     //Input : Permission (Object) , sharePrefixListArray (Array) , sharePrefixListArraylength (Int)
     //Output : AccessResultStr(Object)
-    public func share(permission:inout UplinkPermission, prefix:inout [UplinkSharePrefix])throws ->(AccessResultStr) {
+    public func share(permission:inout Permission, prefix:inout [SharePrefix])throws ->(AccessResultStr) {
         //
-        var permissionUplink = Permission()
+        var permissionUplink = UplinkPermission()
         permissionUplink.allow_download = permission.allow_download
         permissionUplink.allow_upload = permission.allow_upload
         permissionUplink.allow_list = permission.allow_list
@@ -109,19 +109,20 @@ public class AccessResultStr {
         permissionUplink.not_after = permission.not_after
         permissionUplink.not_before = permission.not_before
         //
-        var sharePrefixArray: [SharePrefix] = []
+        var sharePrefixArray: [UplinkSharePrefix] = []
         for sharePrefix in prefix {
             //
-            var sharePrefixUplink = SharePrefix()
+            var sharePrefixUplink = UplinkSharePrefix()
             //
-            sharePrefixUplink.bucket = UnsafeMutablePointer<CChar>(mutating: (sharePrefix.bucket as NSString).utf8String)
             //
-            sharePrefixUplink.prefix = UnsafeMutablePointer<CChar>(mutating: (sharePrefix.prefix as NSString).utf8String)
+            sharePrefixUplink.bucket = UnsafePointer<CChar>((sharePrefix.bucket as NSString).utf8String)
+            //
+            sharePrefixUplink.prefix = UnsafePointer<CChar>((sharePrefix.prefix as NSString).utf8String)
             //
             sharePrefixArray.append(sharePrefixUplink)
         }
         //
-        let ptrTosharePrefix = UnsafeMutablePointer<SharePrefix>.allocate(capacity: sharePrefixArray.count)
+        let ptrTosharePrefix = UnsafeMutablePointer<UplinkSharePrefix>.allocate(capacity: sharePrefixArray.count)
         //
         ptrTosharePrefix.initialize(from: &sharePrefixArray, count: sharePrefixArray.count)
         //
@@ -139,5 +140,24 @@ public class AccessResultStr {
             }
         }
         //
+    }
+    //
+    // function overrides the root encryption key for the prefix in
+    // bucket with encryptionKey.
+    // This function is useful for overriding the encryption key in user-specific
+    // access grants when implementing multitenancy in a single app bucket.
+    // Input : bucket (String) , prefix (String) and encryptionKey (UplinkEncryptionKeyResult)
+    // Output : None
+    public func access_Override_Encryption_Key(bucket: String, prefix: String, encryptionKey: UplinkEncryptionKeyResult)throws {
+        do {
+            let ptrbucket = UnsafePointer<CChar>((bucket as NSString).utf8String)
+            let ptrprefix = UnsafePointer<CChar>((prefix as NSString).utf8String)
+            let error = self.uplink.accessOverrideEncryptionKeyFunc!(&self.access, ptrbucket!, ptrprefix!, encryptionKey.encryption_key)
+            if error != nil {
+                throw storjException(code: Int(error!.pointee.code), message: String(validatingUTF8: (error!.pointee.message!))!)
+            }
+        } catch {
+            throw error
+        }
     }
 }

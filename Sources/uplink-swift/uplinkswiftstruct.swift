@@ -2,7 +2,7 @@ import libuplink
 import Foundation
 
 //swiftlint:disable identifier_name
-public class UplinkBucket {
+public class Bucket {
     public var name: String
     public var created: Int64
     public init(name: String = "", created: Int64 = 0) {
@@ -12,7 +12,7 @@ public class UplinkBucket {
 }
 
 //
-public class UplinkSystemMetadata {
+public class SystemMetadata {
     public var created: Int64
     public var expires: Int64
     public var content_length: Int64
@@ -23,16 +23,16 @@ public class UplinkSystemMetadata {
     }
 }
 //
-public class UplinkCustomMetadata {
-    public var entries: [UplinkCustomMetadataEntry]
+public class CustomMetadata {
+    public var entries: [CustomMetadataEntry]
     public var count: Int
-    public init(entries: [UplinkCustomMetadataEntry] = [], count: Int = 0) {
+    public init(entries: [CustomMetadataEntry] = [], count: Int = 0) {
         self.entries = entries
         self.count = count
     }
 }
 //
-public class UplinkCustomMetadataEntry {
+public class CustomMetadataEntry {
     public var key: String
     public var key_length: Int
     public var value: String
@@ -47,13 +47,13 @@ public class UplinkCustomMetadataEntry {
 }
 //
 //
-public class UplinkObject {
+public class Object {
     //
     public var key: String
     public var is_prefix: Bool
-    public var system: UplinkSystemMetadata
-    public var custom: UplinkCustomMetadata
-    public init(key: String, is_prefix: Bool, system: UplinkSystemMetadata, custom: UplinkCustomMetadata) {
+    public var system: SystemMetadata
+    public var custom: CustomMetadata
+    public init(key: String, is_prefix: Bool, system: SystemMetadata, custom: CustomMetadata) {
         self.key = key
         self.is_prefix = is_prefix
         self.system = system
@@ -62,7 +62,7 @@ public class UplinkObject {
 }
 //
 //
-public class UplinkSharePrefix {
+public class SharePrefix {
     public var bucket: String
     public var prefix: String
     public init(bucket: String = "", prefix: String = "") {
@@ -71,7 +71,7 @@ public class UplinkSharePrefix {
     }
 }
 //
-public class UplinkListBucketsOptions {
+public class ListBucketsOptions {
     public var cursor: String
     public init(cursor: String = "") {
         self.cursor = cursor
@@ -79,7 +79,7 @@ public class UplinkListBucketsOptions {
 }
 //
 //swiftlint:disable line_length
-public class UplinkListObjectsOptions {
+public class ListObjectsOptions {
     public var prefix: String
     public var cursor: String
     public var recursive: Bool
@@ -94,7 +94,7 @@ public class UplinkListObjectsOptions {
     }
 }
 
-public class UplinkConfig {
+public class Config {
     public var user_agent: String
     public var dial_timeout_milliseconds: Int32
     public var temp_directory: String
@@ -105,7 +105,7 @@ public class UplinkConfig {
     }
 }
 
-public class UplinkPermission {
+public class Permission {
     public var allow_download: Bool
     public var allow_upload: Bool
     public var allow_list: Bool
@@ -122,18 +122,34 @@ public class UplinkPermission {
     }
 }
 //
-public class UplinkUploadOptions {
+public class UploadOptions {
     public var expires: Int64
     public init(expires: Int64 = 0) {
         self.expires = expires
     }
 }
 //
-public class UplinkDownloadOptions {
+public class DownloadOptions {
     public var offset: Int64
     public var length: Int64
     public init(offset: Int64 = 0, length: Int64 = 0) {
         self.offset = offset
         self.length = length
+    }
+}
+//
+public class EncryptionKey {
+    public var _handle: Int
+    public init(_handle: Int = 0) {
+        self._handle = _handle
+    }
+}
+//
+public class EncryptionKeyResult {
+    public var encryption_key: [EncryptionKey]
+    public var error: [Error]
+    public init(encryption_key: [EncryptionKey] = [], error: [Error]) {
+        self.encryption_key = encryption_key
+        self.error = error
     }
 }

@@ -3,11 +3,11 @@ import libuplink
 //swiftlint:disable line_length
 public class ProjectResultStr {
     //
-    var project: Project
+    var project: UplinkProject
     var uplink: Storj
-    var projectResult: ProjectResult?
+    var projectResult: UplinkProjectResult?
     //
-    public init(uplink: Storj, project: Project, projectResult: ProjectResult? = nil) {
+    public init(uplink: Storj, project: UplinkProject, projectResult: UplinkProjectResult? = nil) {
         self.project = project
         self.uplink = uplink
         if projectResult != nil {

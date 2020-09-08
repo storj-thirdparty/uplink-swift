@@ -36,7 +36,7 @@ func downloadObject(project:inout ProjectResultStr, bucketName: String, localFul
 func downloadFile(project:inout ProjectResultStr, bucketName: String, downloadFileSizeOnStorj: Int64) {
     do {
         //Setting upload options
-        var downloadOptions = UplinkDownloadOptions(offset: 0, length: -1)
+        var downloadOptions = DownloadOptions(offset: 0, length: -1)
         //
         let download = try  project.download_Object(bucket: bucketName, key: storjDownloadPath, downloadOptions: &downloadOptions)
         print("Storj Download Path : ", storjDownloadPath)
