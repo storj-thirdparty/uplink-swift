@@ -45,7 +45,7 @@ extension UplinkswiftTests {
             let entriesArray = [entries]
             var customMetaDataObj = CustomMetadata(entries: entriesArray, count: entriesArray.count)
             //
-            try upload.set_Custom_Metadata(customMetadata: &customMetaDataObj)
+            try upload.set_Custom_Metadata( customMetadata: &customMetaDataObj)
             //
             try  upload.commit()
 

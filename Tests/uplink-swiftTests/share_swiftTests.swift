@@ -5,7 +5,6 @@ import XCTest
 extension UplinkswiftTests {
     func shareAccess(project: ProjectResultStr, uplink: Storj, access: AccessResultStr) {
         do {
-            //swiftlint:disable line_length
             var permission = Permission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
             //
             let sharePrefix = SharePrefix(bucket: storjBucket, prefix: "path/")
