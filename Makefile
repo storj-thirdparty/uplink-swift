@@ -8,7 +8,7 @@ GOGET=$(GOCMD) get
 GIT_REPO=https://github.com/storj/uplink-c
 UPLINKC_NAME=uplink-c
 LIBRARY_NAME=libuplinkc.dylib
-COPY_LIBRARY_FILE=libuplinkc.dylib libuplinkc.h uplink_definitions.h
+COPY_LIBRARY_FILE=libuplinkc.dylib *.h
 # Swift parameters
 SOURCE_DIR_NAME=Sources
 CLIBUPLINK_DIR_NAME=$(SOURCE_DIR_NAME)/libuplink
