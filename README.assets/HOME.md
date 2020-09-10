@@ -11,79 +11,86 @@
     * function requests satellite for a new access grant using a passhprase
     * pre-requisites: None
     * inputs: Satellite Address, API Key and Encryptionphassphrase 
-    * output: AccessResultStr
+    * output: AccessResult
 
 #### `parse_Access(String)`
 
     * function to parses serialized access grant string
     * pre-requisites: None
     * inputs: StringKey
-    * output: AccessResultStr
+    * output: AccessResult
 
-#### `config_Request_Access_With_Passphrase(config, String, String, String)`
+#### `config_request_Access_With_Passphrase(config, String, String, String)`
 
     * function requests satellite for a new access grant using a passhprase and config.
     * pre-requisites: None
     * inputs: Config ,Satellite Address, API Key and Encryptionphassphrase
-    * output: AccessResultStr
+    * output: AccessResult
+
+#### `derive_Encryption_Key(String, [UInt8])`
+
+    * function derives a salted encryption key for passphrase using the salt.
+    * pre-requisites: None
+    * inputs: Passphrase and Array
+    * output: UplinkEnc
 
 #### `serialize()`
 
     * function to serializes access grant into a string.
     * pre-requisites: None
     * inputs: None
-    * output: String
+    * output: StringResult
 
 
-#### `share(UplinkPermission, inout [UplinkSharePrefix])`
+#### `access_Share(Permission, SharePrefix, Int)`
 
     * function creates share access of specified bucket and paths.
-    * pre-requisites: config_Request_Access_With_Passphrase or request_Access_With_Passphrase
-    * inputs: UplinkPermission and [UplinkSharePrefix]
-    * output: AccessResultStr
+    * pre-requisites: config_Request_Access_With_Passphrase or config_Request_Access_With_Passphrase
+    * inputs: Permission ,UnsafeMutablePointer<[SharePrefix]>,Int
+    * output: AccessResult
 
-
-#### `list_Buckets(inout UplinkListBucketsOptions)`
+#### `list_Buckets(inout ListBucketsOptions)`
 
     * function to lists buckets
     * pre-requisites: open_Project function has been already called
-    * inputs: UplinkListBucketsOptions
-    * output: [UplinkBucket]
+    * inputs: List Bucket Options
+    * output: None
 
-#### `delete_Bucket(bucket:​ String)`
+#### `delete_Bucket(String)`
 
     * function to delete empty bucket on storj V3
     * pre-requisites: open_Project function has been already called
     * inputs: Bucket Name
-    * output: UplinkBucket
+    * output: BucketResult
 
-#### `ensure_Bucket(bucket:​ String)`
+#### `ensure_Bucket(String)`
 
     * function to creates a new bucket and ignores the error when it already exists
     * pre-requisites: open_Project function has been already called
     * inputs: Bucket Name
-    * output: UplinkBucket
+    * output: BucketResult
 
-#### `create_Bucket(bucket:​ String)`
+#### `create_Bucket(String)`
 
     * function to create bucket on storj V3
     * pre-requisites: open_Project function has been already called
     * inputs: Bucket Name
-    * output: UplinkBucket
+    * output: BucketResult
 
-#### `stat_Bucket(bucket:​ String)`
+#### `stat_Bucket(String)`
 
     * function returns information about a bucket.
     * pre-requisites: None
     * inputs: Bucket Name 
-    * output: UplinkBucket
+    * output: BucketResult
+
 
 #### `info()`
 
     * function returns metadata of downloading object
     * pre-requisites: download_Object function has been already called
     * inputs: None
-    * output: UplinkObject
+    * output: ObjectResult
 
 #### `close()`
 
@@ -92,77 +99,75 @@
     * inputs: None
     * output: None
 
-#### `read(data:​ UnsafeMutablePointer<UInt8>, sizeToWrite:​ Int)`
+#### `read(UnsafeMutablePointer<UInt8>, Int)`
 
     * function reads byte stream from storj V3
     * pre-requisites: download_Object function has been already called
     * inputs: Pointer to array buffer, Size of Buffer
-    * output: Int
+    * output: ReadResult
 
-#### `download_Object(String, String, inout  UplinkDownloadOptions)`
+#### `download_Object(String, String, DownloadOptions)`
 
     * function for dowloading object
     * pre-requisites: open_Project function has been already called
-    * inputs: Bucket Name,Object Name on storj V3 and UplinkDownloadOptions
-    * output: DownloadResultStr
-
+    * inputs: UnsafeMutablePointer<Project> ,Object Name on storj V3 and UnsafeMutablePointer<DownloadOptions>
+    * output: DownloadResult
 
 #### `stat_Object(String, String)`
 
     * function information about an object at the specific key.
     * pre-requisites: open_project function has been already called
-    * inputs: bucket Name and Object
-    * output: UplinkObject
+    * inputs: Bucket Name and Object Name
+    * output: ObjectResult
 
 #### `delete_Object(String, String)`
 
     * function delete object from storj V3
     * pre-requisites: open_Project function has been already called
     * inputs: Bucket Name and Object Name
-    * output: UplinkObject
+    * output: ObjectResult
 
-#### `list_Objects(String, ​inout  UplinkListObjectsOptions)`
+#### `list_Objects(String, ListObjectsOptions)`
 
     * function lists objects
     * pre-requisites: open_Project function has been already called
-    * inputs: Bucket Name and UplinkListObjectsOptions
-    * output: [UplinkObject]
-
+    * inputs: Bucket Name and ListObjectsOptions
+    * output: UnsafeMutablePointer<ObjectIterator>? or nil
 
 #### `close_Project()`
 
     * function close the project.
     * pre-requisites: open_Project function has been already called
-    * inputs: None
-    * output: None
+    * inputs: UnsafeMutablePointer<Project>
+    * output: UnsafeMutablePointer<Error>? or nil
 
-#### `config_Open_Project(UplinkConfig)`
+#### `config_Open_Project(Config)`
 
     * function to open project using access grant and config
     * pre-requisites: request_Access_With_Passphrase or parse_Access function has been already called
     * inputs: Config
-    * output: ProjectResultStr
+    * output: ProjectResult
 
 #### `open_Project()`
 
     * function to open project using access grant.
     * pre-requisites:  request_Access_With_Passphrase or parse_Access function has been already called
     * inputs: None
-    * output: ProjectResultStr
+    * output: ProjectResult
 
 #### `info()`
 
     * function return metadata of uploading object
     * pre-requisites: upload_Object function has been already called
     * inputs: None
-    * output: UplinkObject
+    * output: ObjectResult
 
-#### `set_Custom_Metadata(inout UplinkCustomMetadata)`
- 
+#### `set_Custom_Metadata(CustomMetadata)`
+
     * function to set custom metadata on storj V3 object
     * pre-requisites: upload_Object function has been already called
-    * inputs: UplinkCustomMetadata
-    * output: None
+    * inputs: CustomMetadata
+    * output: UnsafeMutablePointer<Error>? or nil
 
 #### `abort()`
 
@@ -182,17 +187,22 @@
 
     * function to upload len(p) bytes from p to the object's data stream.
     * pre-requisites: upload_Object function has been already called
-    * inputs: data:​ UnsafeMutablePointer<UInt8>, sizeToWrite:​ Int
-    * output: Int
+    * inputs: Pointer to buffer array , Len of buffer
+    * output: WriteResult
 
-#### `upload_Object(String, String, ​   inout UplinkUploadOptions)`
+#### `upload_Object(String, UploadOptions)`
 
     * function to start an upload to the specified key.
     * pre-requisites: open_Project function has been already called
-    * inputs: Object name and UplinkUploadOptions
-    * output: UploadResultStr
+    * inputs: Object name and UploadOptions
+    * output: UploadResult
 
+#### `access_Override_Encryption_Key(String,String,UplinkEncryptionKeyResult)`
 
+    * function to start an upload to the specified key.
+    * pre-requisites: open_Project function has been already called
+    * inputs: Object name and UploadOptions
+    * output: UploadResult
 
 ## Testing
 

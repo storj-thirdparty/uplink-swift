@@ -2,36 +2,36 @@ import Foundation
 import libuplink
 
 //swiftlint:disable line_length identifier_name
-public func uplinkObjectToSwift(uplinkObject: Object) -> (UplinkObject) {
+public func uplinkObjectToSwift(uplinkObject: UplinkObject) -> (Object) {
     //
     let key: String = String(validatingUTF8: (uplinkObject.key!))!
     let is_prefix: Bool = uplinkObject.is_prefix
     //
-    let system: SystemMetadata = uplinkObject.system
+    let system: UplinkSystemMetadata = uplinkObject.system
     //
-    let custom: CustomMetadata = uplinkObject.custom
+    let custom: UplinkCustomMetadata = uplinkObject.custom
     //
-    let systemStr: UplinkSystemMetadata = UplinkSystemMetadata()
+    let systemStr: SystemMetadata = SystemMetadata()
     systemStr.content_length = system.content_length
     systemStr.created = system.created
     systemStr.expires = system.expires
     //
-    var customMetaArray: [UplinkCustomMetadataEntry] = []
-    var metaData: UplinkCustomMetadata
+    var customMetaArray: [CustomMetadataEntry] = []
+    var metaData: CustomMetadata
     //
     if custom.count>0 {
         //
         let buffer = UnsafeBufferPointer(start: custom.entries, count: custom.count)
         let entriesArray = Array(buffer)
         for entries in entriesArray {
-            let entry = UplinkCustomMetadataEntry(key: String(validatingUTF8: (entries.key!))!, key_length: entries.key_length, value: String(validatingUTF8: (entries.value!))!, value_length: entries.value_length)
+            let entry = CustomMetadataEntry(key: String(validatingUTF8: (entries.key!))!, key_length: entries.key_length, value: String(validatingUTF8: (entries.value!))!, value_length: entries.value_length)
             customMetaArray.append(entry)
         }
-        metaData = UplinkCustomMetadata(entries: customMetaArray, count: custom.count)
-        return UplinkObject(key: key, is_prefix: is_prefix, system: systemStr, custom: metaData)
+        metaData = CustomMetadata(entries: customMetaArray, count: custom.count)
+        return Object(key: key, is_prefix: is_prefix, system: systemStr, custom: metaData)
     }
     // Return object
-    return UplinkObject(key: key, is_prefix: is_prefix, system: systemStr, custom: UplinkCustomMetadata(entries: [], count: 0))
+    return Object(key: key, is_prefix: is_prefix, system: systemStr, custom: CustomMetadata(entries: [], count: 0))
 }
 //
 extension ProjectResultStr {
@@ -39,7 +39,7 @@ extension ProjectResultStr {
     // function returns information about an object at the specific key.
     //Input : BucketName (String) , ObjectName (String)
     //Output : UplinkObject (Object)
-    public func stat_Object(bucket: String, key: String) throws ->(UplinkObject) {
+    public func stat_Object(bucket: String, key: String) throws ->(Object) {
         do {
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
             let ptrStorjObjectName = UnsafeMutablePointer<CChar>(mutating: (key as NSString).utf8String)
@@ -57,7 +57,7 @@ extension ProjectResultStr {
                 throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
             }
             //
-            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+            return Object(key: "", is_prefix: false, system: SystemMetadata(), custom: CustomMetadata(entries: [], count: 0))
 
         } catch {
             throw error
@@ -67,10 +67,10 @@ extension ProjectResultStr {
     // function starts an upload to the specified key.
     // Iutput : Bucket Name (String) , ObjectPath (String) and Download Options (Object)
     // Output : UploadResultStr (Object)
-    public func upload_Object(bucket: String, key: String, uploadOptions:inout UplinkUploadOptions) throws ->(UploadResultStr) {
+    public func upload_Object(bucket: String, key: String, uploadOptions:inout UploadOptions) throws ->(UploadResultStr) {
         do {
             //
-            var uploadOptionsUplink = UploadOptions()
+            var uploadOptionsUplink = UplinkUploadOptions()
             uploadOptionsUplink.expires = uploadOptions.expires
             //
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -95,9 +95,9 @@ extension ProjectResultStr {
     // function starts download to the specified key.
     // Iutput : Bucket Name (String) , ObjectPath (String) and Download Options (Object)
     // Output : Download (Object)
-    public func download_Object(bucket: String, key: String, downloadOptions:inout  UplinkDownloadOptions) throws ->(DownloadResultStr) {
+    public func download_Object(bucket: String, key: String, downloadOptions:inout  DownloadOptions) throws ->(DownloadResultStr) {
         do {
-            var downloadOptionsUplink = DownloadOptions()
+            var downloadOptionsUplink = UplinkDownloadOptions()
             downloadOptionsUplink.length = downloadOptions.length
             downloadOptionsUplink.offset = downloadOptions.offset
             //
@@ -123,7 +123,7 @@ extension ProjectResultStr {
     //function deletes the object at the specific key.
     //Input : BucketName (String) , ObjectName (String)
     //Output : ObjectInfo (Object)
-    public func delete_Object(bucket: String, key: String) throws ->(UplinkObject) {
+    public func delete_Object(bucket: String, key: String) throws ->(Object) {
         do {
 
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -142,7 +142,7 @@ extension ProjectResultStr {
                 throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
             }
             //
-            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+            return Object(key: "", is_prefix: false, system: SystemMetadata(), custom: CustomMetadata(entries: [], count: 0))
         } catch {
             throw error
         }
@@ -151,20 +151,20 @@ extension ProjectResultStr {
     //function returns a list of objects with all its information.
     //Input : BucketName (String) , ListObjectOptions (Object)
     //Output : UplinkObject (Object)
-    public func list_Objects(bucket: String, listObjectsOptions:inout  UplinkListObjectsOptions) throws->([UplinkObject]) {
+    public func list_Objects(bucket: String, listObjectsOptions:inout  ListObjectsOptions) throws->([Object]) {
         do {
             //
-            var listObjectsOptionsUplink = ListObjectsOptions()
+            var listObjectsOptionsUplink = UplinkListObjectsOptions()
             //
-            listObjectsOptionsUplink.prefix = UnsafeMutablePointer<CChar>(mutating: (listObjectsOptions.prefix as NSString).utf8String)
-            listObjectsOptionsUplink.cursor = UnsafeMutablePointer<CChar>(mutating: (listObjectsOptions.cursor as NSString).utf8String)
+            listObjectsOptionsUplink.prefix = UnsafePointer<CChar>((listObjectsOptions.prefix as NSString).utf8String)
+            listObjectsOptionsUplink.cursor = UnsafePointer<CChar>((listObjectsOptions.cursor as NSString).utf8String)
             //
             listObjectsOptionsUplink.recursive = listObjectsOptions.recursive
             listObjectsOptionsUplink.system = listObjectsOptions.system
             listObjectsOptionsUplink.custom = listObjectsOptions.custom
             //
             let ptrToBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
-            var listObject: [UplinkObject] = []
+            var listObject: [Object] = []
             var objectIterator =
                 self.uplink.listObjectsFunc!(&self.project, ptrToBucketName, &listObjectsOptionsUplink)
 

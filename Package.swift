@@ -20,6 +20,7 @@ let package = Package(
         dependencies: []),
         .testTarget(
             name: "uplink-swiftTests",
-            dependencies: ["uplink-swift"])
+            dependencies: ["uplink-swift"],
+            path: "test/uplink-swiftTests")
     ]
 )

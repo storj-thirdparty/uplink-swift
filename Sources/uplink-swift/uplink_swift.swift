@@ -39,6 +39,10 @@ public class Storj {
 
     //
     var freeWriteResultFunc: FreeWriteResult?, freeUploadResultFunc: FreeUploadResult?, freeBucketFunc: FreeBucket?
+
+    //
+    var accessOverrideEncryptionKeyFunc: AccessOverrideEncryptionKey?, deriveEncryptionKeyFunc: DeriveEncryptionKey?, freeEncryptionKeyResultFunc: FreeEncryptionKeyResult?
+
     //
     private static var uplink: Storj?
     //
@@ -101,6 +105,7 @@ public class Storj {
             try loadUploadSym(dynammicFileHandle: dynammicFileHandle)
             try loadDownloadSym(dynammicFileHandle: dynammicFileHandle)
             try loadErrorSym(dynammicFileHandle: dynammicFileHandle)
+            try loadEncryptionSym(dynammicFileHandle: dynammicFileHandle)
             try checkAllFunction()
             //
         } catch {
@@ -174,13 +179,13 @@ public class Storj {
     // hrough ParseAccess directly.
     // Input : Config (ConfigInfo) , Satellite Address (String) , API key (String) , Encryption phassphrase(String)
     // Output : Access (Object)
-    public func config_Request_Access_With_Passphrase(config: UplinkConfig, satelliteAddress: String, apiKey: String, encryptionPassphrase: String)throws -> (AccessResultStr) {
+    public func config_Request_Access_With_Passphrase(config: Config, satelliteAddress: String, apiKey: String, encryptionPassphrase: String)throws -> (AccessResultStr) {
         do {
             //
-            var configUplink: Config = Config()
+            var configUplink: UplinkConfig = UplinkConfig()
             configUplink.dial_timeout_milliseconds = config.dial_timeout_milliseconds
-            configUplink.temp_directory = UnsafeMutablePointer<CChar>(mutating: (config.temp_directory as NSString).utf8String)
-            configUplink.user_agent = UnsafeMutablePointer<CChar>(mutating: (config.user_agent as NSString).utf8String)
+            configUplink.temp_directory = UnsafePointer<CChar>((config.temp_directory as NSString).utf8String)
+            configUplink.user_agent = UnsafePointer<CChar>((config.user_agent as NSString).utf8String)
             //
             let ptrSatelliteAddress = UnsafeMutablePointer<CChar>(mutating: (satelliteAddress as NSString).utf8String)
             let ptrAPIKey = UnsafeMutablePointer<CChar>(mutating: (apiKey as NSString).utf8String)
@@ -202,4 +207,38 @@ public class Storj {
         }
     }
     //
+    // function derives a salted encryption key for passphrase using the
+    // salt.
+    // This function is useful for deriving a salted encryption key for users when
+    // implementing multitenancy in a single app bucket.
+    // Input passphrase (String) and salt (inout [UInt8])
+    // Output UplinkEncryptionKey (Object)
+    public func derive_Encryption_Key(passphrase: String, salt: inout [UInt8])throws -> (UplinkEncryptionKeyResult) {
+        do {
+            //
+            let ptrpassphrase = UnsafePointer<CChar>((passphrase as NSString).utf8String)!
+            let ptrSalt = salt.withUnsafeMutableBufferPointer({pointerVal in return pointerVal.baseAddress!})
+            let lenght = salt.count
+            let encryptionResult = self.deriveEncryptionKeyFunc!(ptrpassphrase, ptrSalt, lenght)
+            //
+            if encryptionResult.encryption_key != nil {
+                return encryptionResult
+            } else {
+                if encryptionResult.error != nil {
+                    throw storjException(code: Int(encryptionResult.error.pointee.code), message: String(validatingUTF8: (encryptionResult.error.pointee.message!))!)
+                } else {
+                    throw storjException(code: 9999, message: "Error derive_Encryption_Key ")
+                }
+            }
+        } catch {
+            throw error
+        }
+    }
+    //
+    // function frees the resources associated with encryption key.
+    // Input : encryptionResult (inout UplinkEncryptionKeyResult)
+    // Output : None
+    public func free_Encryption_Key_Result(encryptionResult: inout UplinkEncryptionKeyResult) {
+        self.freeEncryptionKeyResultFunc!(encryptionResult)
+    }
 }

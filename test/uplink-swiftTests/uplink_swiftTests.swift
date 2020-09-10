@@ -62,7 +62,7 @@ final class UplinkswiftTests: XCTestCase {
     func listBucketTest(project: ProjectResultStr) {
         do {
             //
-            var listBucketsOptions = UplinkListBucketsOptions(cursor: "")
+            var listBucketsOptions = ListBucketsOptions(cursor: "")
             //
             let bucketList = try project.list_Buckets(listBucketsOptions: &listBucketsOptions)
             //

@@ -48,7 +48,7 @@ var satelliteURL: String = "change-me-to-desired-satellite-address";
 var storjapiKey: String = "change-me-to-desired-api-key";
 var storjEncryption: String = "change-me-to-desired-encryption";
 
-var accessResult = try storjSwift.request_Access_With_Passphrase(satellite: SatelliteURL, apiKey: storjApiKey, encryption: storjEncryption)
+var accessResult = try uplink.request_Access_With_Passphrase(satellite: SatelliteURL, apiKey: storjApiKey, encryption: storjEncryption)
 ```
 
 ## parse_Access(String)
@@ -72,7 +72,7 @@ This should be the main way to instantiate an access grant for opening a project
 ##### Usage Example:
 
 ```swift
-var AccessResult = try storjSwift.parse_access(stringKey: stringKey)
+var AccessResult = try uplink.parse_access(stringKey: stringKey)
 ```
 
 
@@ -102,9 +102,38 @@ var storjapiKey: String = "change-me-to-desired-api-key";
 var storjEncryption: String = "change-me-to-desired-encryption"
 var Config =  config()
 
-var access = try storjSwift.config_request_Access_With_Passphrase(config: Config, satellite: SatelliteURL, apiKey: storjApiKey, encryption: storjEncryption)
+var access = try uplink.config_request_Access_With_Passphrase(config: Config, satellite: SatelliteURL, apiKey: storjApiKey, encryption: storjEncryption)
 ```
-    
+## derive_Encryption_Key(String,inout [UInt8])
+
+#### Description:
+
+derive_Encryption_Key function derives a salted encryption key for passphrase using the salt.
+This function is useful for deriving a salted encryption key for users when
+implementing multitenancy in a single app bucket.
+
+##### Arguments:
+
+| arguments | Description |  Type |
+| --- | --- | --- |
+|<code>passphrase</code>| Encryption phassphrase | <code>String</code> |
+|<code>salt</code>|  salt | <code>Array</code> |
+
+
+##### Usage Example:
+```swift
+do {
+
+var salt: [UInt8] = []
+var storjEncryption: String = "change-me-to-desired-encryptionphassphrase"
+
+var encryption = try uplink.derive_Encryption_Key(passphrase: storjEncryption, salt: &salt)
+
+} catch {
+
+}
+```
+
 ## serialize()
 
 ##### Description:
@@ -124,7 +153,35 @@ let accessString = try accessShareResult.serialize()
 }
 ```
  
-## share(inout UplinkPermission, inout UnsafeMutablePointer(UplinkSharePrefix), Int)
+ ## access_Override_Encryption_Key(bucket,prefix,encryptionKey)
+ 
+ #### Description:
+ function overrides the root encryption key for the prefix in bucket with encryptionKey.
+ This function is useful for overriding the encryption key in user-specific access grants when implementing multitenancy in a single app bucket.
+ 
+ ##### Arguments:
+
+ | arguments | Description |  Type |
+ | --- | --- | --- |
+  |<code>bucket</code>| Storj bucketname | <code>String</code> |
+ |<code>passphrase</code>| Encryption phassphrase | <code>String</code> |
+ |<code>encryptionKey</code>|  encryptionKey | <code>UplinkEncryptionKeyResult</code> |
+ 
+ ##### Usage Example:
+ 
+ ```swift
+ do {
+ //
+ let storjBucket = "change-me-to-desired-bucket-name"
+ let prefix = "change-me-to-desired-prefix-with-/"
+ 
+ try parsedAccess.access_Override_Encryption_Key(bucket: storjBucket, prefix: prefix, encryptionKey: encryption)
+ } catch {
+ 
+}
+ ```
+ 
+## share(inout Permission, inout [SharePrefix])
 
 ##### Description:
 
@@ -145,17 +202,16 @@ to call other functions that are bound to it.
 | --- | --- | --- |
 |<code>permission</code>| Create using storj library |<code>object</code> |
 |<code>SharePrefix</code>| Create using storj library |<code>object</code> |
-|<code>PrefixCount</code>|count of share prefix |<code>Int</code> |
 
 ##### Usage Example:
 
 ```swift		
 // set permissions for the new access to be created
-var permission = UplinkPermission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
+var permission = Permission(allow_download: true, allow_upload: true, allow_list: true, allow_delete: true, not_before: 0, not_after: 0)
 //
-let sharePrefix = UplinkSharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
+let sharePrefix = SharePrefix(bucket: storjBucket, prefix: "change-me-to-desired-prefix-with-/")
 //
-var sharePrefixArray: [UplinkSharePrefix] = []
+var sharePrefixArray: [SharePrefix] = []
 sharePrefixArray.append(sharePrefix)
 //
 let accessShareResult = try access.share(permission: &permission, prefix: &sharePrefixArray)
@@ -181,7 +237,7 @@ properties that are bound to it.
 
 ```swift
 // Listing buckets
-var listBucketsOptions = UplinkListBucketsOptions(cursor: "")
+var listBucketsOptions = ListBucketsOptions(cursor: "")
 let bucketList = try project.list_Buckets(listBucketsOptions: &listBucketsOptions)
 ```
 
@@ -347,7 +403,7 @@ var buffer = new Buffer.alloc(BUFFER_SIZE);
 var ReadResult = try  download.read(data: ptrtoreceivedData, sizeToWrite: sizeToWrite)
 ```
 
-## download_Object(String, String, UnsafeMutablePointer(DownloadOptions))
+## download_Object(String, String, inout DownloadOptions)
 
 ##### Description:
 
@@ -372,7 +428,7 @@ It returns an download object, on successful execution it can be used to call ot
 ```swift
 var bucket: String = "change-me-to-desired-bucket-name";
 var key: String = "change-me-to-desired-object-name-on-storj";
-var downloadOptions =   UplinkDownloadOptions(offset: 0, length: -1);
+var downloadOptions =   DownloadOptions(offset: 0, length: -1);
 var downloadResult = try  project.download_Object(bucket: bucketName, key: storjDownloadPath, downloadOptions: &downloadOptions)
 ```	
 
@@ -431,7 +487,7 @@ var ObjectResult = try project.delete_Object( bucket: &bucketName, key: &key)
 
 ```
 
-## list_Objects(String, inout UplinkListObjectsOptions)
+## list_Objects(String, inout ListObjectsOptions)
 
 
 ##### Description:
@@ -453,7 +509,7 @@ other properties which are bound to it.
 ##### Usage Example:
 
 ```swift		
-var listObjectsOptions = UplinkListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
+var listObjectsOptions = ListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
 //
 let objectslist = try project.list_Objects(bucket: storjBucket, listObjectsOptions: &listObjectsOptions)
 ```
@@ -537,7 +593,7 @@ It returns an Object, on successful execution it can be used to get property whi
 var ObjectResult = try upload.info()
 ```
 
-## set_Custom_Metadata(CustomMetadata)
+## set_Custom_Metadata(inout CustomMetadata)
 
 
 ##### Description:
@@ -558,10 +614,10 @@ it returns an error object if successful execution does not occur.
 ```swift
 let keyString: String = "change-me-to-desired-key"
 //
-let entries = UplinkCustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
+let entries = CustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
 //
 let entriesArray = [entries]
-var customMetaDataObj = UplinkCustomMetadata(entries: entriesArray, count: entriesArray.count)
+var customMetaDataObj = CustomMetadata(entries: entriesArray, count: entriesArray.count)
 //
 try upload.set_Custom_Metadata(customMetadata: &customMetaDataObj)
 ```
@@ -654,7 +710,7 @@ It returns an upload object, on successful execution it can be used to call othe
 ```swift		
 var bucket: String = "change-me-to-desired-bucket-name";
 var key: String = "change-me-to-desired-object-name-on-storj";
-var uploadOptions =  UplinkUploadOptions();
+var uploadOptions =  UploadOptions();
 var uploadResult = try project.upload_object(bucket: &bucketName, key: &key, uploadOptions: &uploadOptions)
 ```
 

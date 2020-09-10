@@ -51,7 +51,7 @@ func uploadFile(project: ProjectResultStr, bucketName: String, localFullFileName
         //
         var sizeToWrite = 0
         //
-        var uploadOptions = UplinkUploadOptions()
+        var uploadOptions = UploadOptions()
         //
         var upload = try project.upload_Object(bucket: bucketName, key: storjUploadPath, uploadOptions: &uploadOptions)
         //
@@ -119,10 +119,10 @@ func setCustomMetaData(upload: inout UploadResultStr) {
         //
         let keyString: String = "change-me-to-desired-key"
         //
-        let entries = UplinkCustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
+        let entries = CustomMetadataEntry(key: keyString, key_length: keyString.count, value: keyString, value_length: keyString.count)
         //
         let entriesArray = [entries]
-        var customMetaDataObj = UplinkCustomMetadata(entries: entriesArray, count: entriesArray.count)
+        var customMetaDataObj = CustomMetadata(entries: entriesArray, count: entriesArray.count)
         //
         try upload.set_Custom_Metadata( customMetadata: &customMetaDataObj)
         print("Custom metadata added !!")

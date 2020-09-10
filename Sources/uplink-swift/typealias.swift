@@ -4,95 +4,102 @@ import libuplink
 //swiftlint:disable line_length
 extension Storj {
     //Creating typesalias of all the functions
-    typealias ParseAccess = @convention(c)(UnsafeMutablePointer<Int8>?) -> (AccessResult)
+    typealias ParseAccess = @convention(c)(UnsafeMutablePointer<Int8>?) -> (UplinkAccessResult)
     //
-    typealias RequestAccessWithPassphrase = @convention(c)(UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (AccessResult)
+    typealias RequestAccessWithPassphrase = @convention(c)(UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (UplinkAccessResult)
     //
-    typealias AccessSerialize = @convention(c)(UnsafeMutablePointer<Access>?) -> StringResult
+    typealias AccessSerialize = @convention(c)(UnsafeMutablePointer<UplinkAccess>?) -> UplinkStringResult
     //
-    typealias AccessShare = @convention(c)(UnsafeMutablePointer<Access>, Permission, UnsafeMutablePointer<SharePrefix>, GoInt) -> AccessResult
+    typealias AccessShare = @convention(c)(UnsafeMutablePointer<UplinkAccess>, UplinkPermission, UnsafeMutablePointer<UplinkSharePrefix>, GoInt) -> UplinkAccessResult
     //
-    typealias FreeStringResult = @convention(c)(StringResult) -> Void
+    typealias FreeStringResult = @convention(c)(UplinkStringResult) -> Void
     //
-    typealias FreeAccessResult = @convention(c)(AccessResult) -> Void
+    typealias FreeAccessResult = @convention(c)(UplinkAccessResult) -> Void
     //
-    typealias StatBucket = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?) -> (BucketResult)
+    typealias StatBucket = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?) -> (UplinkBucketResult)
     //
-    typealias CreateBucket = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?) -> (BucketResult)
+    typealias CreateBucket = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?) -> (UplinkBucketResult)
     //
-    typealias EnsureBucket = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?) -> (BucketResult)
+    typealias EnsureBucket = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?) -> (UplinkBucketResult)
     //
-    typealias DeleteBucket = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?) -> (BucketResult)
+    typealias DeleteBucket = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?) -> (UplinkBucketResult)
     //
-    typealias ListBuckets = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<ListBucketsOptions>) ->  (UnsafeMutablePointer<BucketIterator>?)
+    typealias ListBuckets = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<UplinkListBucketsOptions>) ->  (UnsafeMutablePointer<UplinkBucketIterator>?)
     //
-    typealias BucketIteratorNext = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (Bool)
+    typealias BucketIteratorNext = @convention(c)(UnsafeMutablePointer<UplinkBucketIterator>) -> (Bool)
     //
-    typealias BucketIteratorErr = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Error>?)
+    typealias BucketIteratorErr = @convention(c)(UnsafeMutablePointer<UplinkBucketIterator>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias BucketIteratorItem = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> (UnsafeMutablePointer<Bucket>?)
+    typealias BucketIteratorItem = @convention(c)(UnsafeMutablePointer<UplinkBucketIterator>) -> (UnsafeMutablePointer<UplinkBucket>?)
     //
-    typealias FreeBucketIterator = @convention(c)(UnsafeMutablePointer<BucketIterator>) -> Void
+    typealias FreeBucketIterator = @convention(c)(UnsafeMutablePointer<UplinkBucketIterator>) -> Void
     //
-    typealias ConfigRequestAccessWithPassphrase = @convention(c)(Config, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (AccessResult)
+    typealias ConfigRequestAccessWithPassphrase = @convention(c)(UplinkConfig, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (UplinkAccessResult)
     //
-    typealias ConfigOpenProject = @convention(c)(Config, UnsafeMutablePointer<Access>?) -> (ProjectResult)
+    typealias ConfigOpenProject = @convention(c)(UplinkConfig, UnsafeMutablePointer<UplinkAccess>?) -> (UplinkProjectResult)
     //
-    typealias DownloadObject = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<DownloadOptions>) -> (DownloadResult)
+    typealias DownloadObject = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<UplinkDownloadOptions>) -> (UplinkDownloadResult)
     //
-    typealias DownloadRead = @convention(c)(UnsafeMutablePointer<Download>, UnsafeMutableRawPointer?, Int) -> (ReadResult)
+    typealias DownloadRead = @convention(c)(UnsafeMutablePointer<UplinkDownload>, UnsafeMutableRawPointer?, Int) -> (UplinkReadResult)
     //
-    typealias DownloadInfo = @convention(c)(UnsafeMutablePointer<Download>) -> (ObjectResult)
+    typealias DownloadInfo = @convention(c)(UnsafeMutablePointer<UplinkDownload>) -> (UplinkObjectResult)
     //
-    typealias UploadInfo = @convention(c)(UnsafeMutablePointer<Upload>) -> (ObjectResult)
+    typealias UploadInfo = @convention(c)(UnsafeMutablePointer<UplinkUpload>) -> (UplinkObjectResult)
     //
-    typealias FreeReadResult = @convention(c)(ReadResult) -> Void
+    typealias FreeReadResult = @convention(c)(UplinkReadResult) -> Void
     //
-    typealias CloseDownload  = @convention(c)(UnsafeMutablePointer<Download>) -> (UnsafeMutablePointer<Error>?)
+    typealias CloseDownload  = @convention(c)(UnsafeMutablePointer<UplinkDownload>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias FreeDownloadResult = @convention(c)(DownloadResult) -> Void
+    typealias FreeDownloadResult = @convention(c)(UplinkDownloadResult) -> Void
     //
-    typealias FreeBucketResult = @convention(c)(BucketResult) -> Void
+    typealias FreeBucketResult = @convention(c)(UplinkBucketResult) -> Void
     //
-    typealias FreeError = @convention(c)(UnsafeMutablePointer<Error>?) -> Void
+    typealias FreeError = @convention(c)(UnsafeMutablePointer<UplinkError>?) -> Void
     //
-    typealias StatObject = @convention(c)(UnsafeMutablePointer<Project>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (ObjectResult)
+    typealias StatObject = @convention(c)(UnsafeMutablePointer<UplinkProject>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (UplinkObjectResult)
     //
-    typealias DeleteObject = @convention(c)(UnsafeMutablePointer<Project>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (ObjectResult)
+    typealias DeleteObject = @convention(c)(UnsafeMutablePointer<UplinkProject>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?) -> (UplinkObjectResult)
     //
-    typealias FreeObjectResult = @convention(c)(ObjectResult) -> Void
+    typealias FreeObjectResult = @convention(c)(UplinkObjectResult) -> Void
     //
-    typealias FreeObject = @convention(c)(UnsafeMutablePointer<Object>) -> Void
+    typealias FreeObject = @convention(c)(UnsafeMutablePointer<UplinkObject>) -> Void
     //
-    typealias ListObjects = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<ListObjectsOptions>) -> (UnsafeMutablePointer<ObjectIterator>?)
+    typealias ListObjects = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<UplinkListObjectsOptions>) -> (UnsafeMutablePointer<UplinkObjectIterator>?)
     //
-    typealias ObjectIteratorNext = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (Bool)
+    typealias ObjectIteratorNext = @convention(c)(UnsafeMutablePointer<UplinkObjectIterator>) -> (Bool)
     //
-    typealias ObjectIteratorErr = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Error>?)
+    typealias ObjectIteratorErr = @convention(c)(UnsafeMutablePointer<UplinkObjectIterator>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias ObjectIteratorItem = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> (UnsafeMutablePointer<Object>?)
+    typealias ObjectIteratorItem = @convention(c)(UnsafeMutablePointer<UplinkObjectIterator>) -> (UnsafeMutablePointer<UplinkObject>?)
     //
-    typealias FreeObjectIterator = @convention(c)(UnsafeMutablePointer<ObjectIterator>) -> Void
+    typealias FreeObjectIterator = @convention(c)(UnsafeMutablePointer<UplinkObjectIterator>) -> Void
     //
-    typealias OpenProject = @convention(c)(UnsafeMutablePointer<Access>) -> (ProjectResult)
+    typealias OpenProject = @convention(c)(UnsafeMutablePointer<UplinkAccess>) -> (UplinkProjectResult)
     //
-    typealias CloseProject = @convention(c)(UnsafeMutablePointer<Project>) -> (UnsafeMutablePointer<Error>?)
+    typealias CloseProject = @convention(c)(UnsafeMutablePointer<UplinkProject>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias FreeProjectResult = @convention(c)(ProjectResult) -> Void
+    typealias FreeProjectResult = @convention(c)(UplinkProjectResult) -> Void
     //
-    typealias UploadObject = @convention(c)(UnsafeMutablePointer<Project>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<UploadOptions>) -> (UploadResult)
+    typealias UploadObject = @convention(c)(UnsafeMutablePointer<UplinkProject>, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<Int8>?, UnsafeMutablePointer<UplinkUploadOptions>) -> (UplinkUploadResult)
     //
-    typealias UploadWrite = @convention(c)(UnsafeMutablePointer<Upload>, UnsafeMutableRawPointer?, Int) -> (WriteResult)
+    typealias UploadWrite = @convention(c)(UnsafeMutablePointer<UplinkUpload>, UnsafeMutableRawPointer?, Int) -> (UplinkWriteResult)
     //
-    typealias UploadCommit = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>?)
+    typealias UploadCommit = @convention(c)(UnsafeMutablePointer<UplinkUpload>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias UploadAbort = @convention(c)(UnsafeMutablePointer<Upload>) -> (UnsafeMutablePointer<Error>?)
+    typealias UploadAbort = @convention(c)(UnsafeMutablePointer<UplinkUpload>) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias UploadSetCustomMetadata = @convention(c)(UnsafeMutablePointer<Upload>, CustomMetadata) -> (UnsafeMutablePointer<Error>?)
+    typealias UploadSetCustomMetadata = @convention(c)(UnsafeMutablePointer<UplinkUpload>, UplinkCustomMetadata) -> (UnsafeMutablePointer<UplinkError>?)
     //
-    typealias FreeWriteResult = @convention(c)(WriteResult) -> Void
+    typealias FreeWriteResult = @convention(c)(UplinkWriteResult) -> Void
     //
-    typealias FreeUploadResult = @convention(c)(UploadResult) -> Void
+    typealias FreeUploadResult = @convention(c)(UplinkUploadResult) -> Void
     //
-    typealias FreeBucket = @convention(c)(UnsafeMutablePointer<Bucket>) -> Void
+    typealias FreeBucket = @convention(c)(UnsafeMutablePointer<UplinkBucket>) -> Void
+    //
+    typealias AccessOverrideEncryptionKey = @convention(c)(UnsafeMutablePointer<UplinkAccess>, UnsafePointer<uplink_const_char>, UnsafePointer<uplink_const_char>, UnsafeMutablePointer<UplinkEncryptionKey>) -> (UnsafeMutablePointer<UplinkError>?)
+    //
+    typealias DeriveEncryptionKey = @convention(c)(UnsafePointer<uplink_const_char>, UnsafeMutableRawPointer, Int) -> (UplinkEncryptionKeyResult)
+    //
+    typealias FreeEncryptionKeyResult = @convention(c)(UplinkEncryptionKeyResult) -> Void
+    //
 }

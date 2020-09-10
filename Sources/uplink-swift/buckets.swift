@@ -7,7 +7,7 @@ extension ProjectResultStr {
     // function creates a new bucket.
     // Input : BucketName (String)
     // Output : UplinkBucket (Object)
-    public func create_Bucket(bucket: String) throws ->(UplinkBucket) {
+    public func create_Bucket(bucket: String) throws ->(Bucket) {
         do {
             //
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -18,14 +18,14 @@ extension ProjectResultStr {
             }
             //
             if bucketResult.bucket != nil {
-                return UplinkBucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
+                return Bucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
             }
             // Checking if error returned
             if bucketResult.error != nil {
                 throw storjException(code: Int(bucketResult.error.pointee.code), message: String(validatingUTF8: (bucketResult.error.pointee.message!))!)
             }
             //
-            return UplinkBucket()
+            return Bucket()
         } catch {
             throw error
         }
@@ -35,7 +35,7 @@ extension ProjectResultStr {
     // When bucket already exists it returns a valid Bucket and no error
     // Input : BucketName (String)
     // Output : UplinkBucket (Object)
-    public func ensure_Bucket(bucket: String) throws ->(UplinkBucket) {
+    public func ensure_Bucket(bucket: String) throws ->(Bucket) {
         do {
             //
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -47,14 +47,14 @@ extension ProjectResultStr {
             }
             //
             if bucketResult.bucket != nil {
-                return UplinkBucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
+                return Bucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
             }
             // Checking if error returned
             if bucketResult.error != nil {
                 throw storjException(code: Int(bucketResult.error.pointee.code), message: String(validatingUTF8: (bucketResult.error.pointee.message!))!)
             }
             //
-            return UplinkBucket()
+            return Bucket()
         } catch {
             throw error
         }
@@ -63,7 +63,7 @@ extension ProjectResultStr {
     // function returns information about a bucket.
     // Input : BucketName (String)
     // Output : UplinkBucket (Object)
-    public func stat_Bucket(bucket: String) throws ->(UplinkBucket) {
+    public func stat_Bucket(bucket: String) throws ->(Bucket) {
         do {
             //
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -75,14 +75,14 @@ extension ProjectResultStr {
             }
             //
             if bucketResult.bucket != nil {
-                return UplinkBucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
+                return Bucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
             }
             // Checking if error returned
             if bucketResult.error != nil {
                 throw storjException(code: Int(bucketResult.error.pointee.code), message: String(validatingUTF8: (bucketResult.error.pointee.message!))!)
             }
             //
-            return UplinkBucket()
+            return Bucket()
         } catch {
             throw error
         }
@@ -92,7 +92,7 @@ extension ProjectResultStr {
     // When bucket is not empty it throws BucketNotEmptyError exception.
     // Input : BucketName (String)
     // Output : UplinkBucket (Object)
-    public func delete_Bucket(bucket: String) throws ->(UplinkBucket) {
+    public func delete_Bucket(bucket: String) throws ->(Bucket) {
         do {
             //
             let ptrBucketName = UnsafeMutablePointer<CChar>(mutating: (bucket as NSString).utf8String)
@@ -105,14 +105,14 @@ extension ProjectResultStr {
             //
             if bucketResult.bucket != nil {
                 //
-                return UplinkBucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
+                return Bucket(name: String(validatingUTF8: (bucketResult.bucket.pointee.name )!)!, created: bucketResult.bucket.pointee.created)
             }
             // Checking if error returned
             if bucketResult.error != nil {
                 throw storjException(code: Int(bucketResult.error.pointee.code), message: String(validatingUTF8: (bucketResult.error.pointee.message!))!)
             }
             //
-            return UplinkBucket()
+            return Bucket()
         } catch {
             throw error
         }
@@ -121,13 +121,13 @@ extension ProjectResultStr {
     // function returns a list of buckets with all its information.
     // Input : ListBucketOptions (Object)
     // Output : List of UplinkBucket (Object)
-    public func list_Buckets(listBucketsOptions:inout UplinkListBucketsOptions) throws->([UplinkBucket]) {
+    public func list_Buckets(listBucketsOptions:inout ListBucketsOptions) throws->([Bucket]) {
         do {
             //
-            var bucketList: [UplinkBucket] = []
+            var bucketList: [Bucket] = []
             //
-            var listBucketsOptionsUplink = ListBucketsOptions()
-            let ptrCursor = UnsafeMutablePointer<CChar>(mutating: (listBucketsOptions.cursor as NSString).utf8String)
+            var listBucketsOptionsUplink = UplinkListBucketsOptions()
+            let ptrCursor = UnsafePointer<CChar>((listBucketsOptions.cursor as NSString).utf8String)
             listBucketsOptionsUplink.cursor = ptrCursor
             var bucketIterator = self.uplink.listBucketsFunc!(&self.project, &listBucketsOptionsUplink)
             //
@@ -142,7 +142,7 @@ extension ProjectResultStr {
                 while self.uplink.bucketIteratorNextFunc!(bucketIterator!) {
                     let bucket = self.uplink.bucketIteratorItemFunc!(bucketIterator!)
                     if bucket != nil {
-                        bucketList.append(UplinkBucket(name: String(validatingUTF8: (bucket!.pointee.name )!)!, created: bucket!.pointee.created))
+                        bucketList.append(Bucket(name: String(validatingUTF8: (bucket!.pointee.name )!)!, created: bucket!.pointee.created))
                         self.uplink.freeBucketFunc!(bucket!)
                     }
                 }

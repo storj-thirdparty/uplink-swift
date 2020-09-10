@@ -4,11 +4,11 @@ import libuplink
 //
 //swiftlint:disable line_length
 public class DownloadResultStr {
-    var download: Download
+    var download: UplinkDownload
     var uplink: Storj
-    var downloadResult: DownloadResult?
+    var downloadResult: UplinkDownloadResult?
 
-    public init(uplink: Storj, download: Download, downloadResult: DownloadResult? = nil) {
+    public init(uplink: Storj, download: UplinkDownload, downloadResult: UplinkDownloadResult? = nil) {
         self.download = download
         self.uplink = uplink
         if downloadResult != nil {
@@ -19,7 +19,7 @@ public class DownloadResultStr {
     // function returns information about the downloaded object.
     // Input : None
     // Output : ObjectInfo (UplinkObject)
-    public func info() throws ->(UplinkObject) {
+    public func info() throws ->(Object) {
         do {
             let objectResult = self.uplink.downloadInfoFunc!(&self.download)
             //
@@ -31,7 +31,7 @@ public class DownloadResultStr {
                 throw storjException(code: Int(objectResult.error.pointee.code), message: String(validatingUTF8: (objectResult.error.pointee.message!))!)
             }
             //
-            return UplinkObject(key: "", is_prefix: false, system: UplinkSystemMetadata(), custom: UplinkCustomMetadata(entries: [], count: 0))
+            return Object(key: "", is_prefix: false, system: SystemMetadata(), custom: CustomMetadata(entries: [], count: 0))
         } catch {
             throw error
         }
