@@ -12,6 +12,8 @@ var storjEncryption: String = "change-me-to-desired-encryptionphassphrase"
 var storjBucket: String = "change-me-to-desired-bucket-name"
 // Upload path within the bucket, where file will be uploaded.
 var storjUploadPath: String = "path/filename.txt"
+// Upload path within the bucket, where file will be uploaded via overridden serialized access key
+var storjUploadPath2: String = "path/filename2.txt"
 // Download path within the bucket, wherefrom the Storj object is to be downloaded.
 var storjDownloadPath: String = "path/filename.txt"
 // Full file name, including path, of the local system, to be uploaded to Storj bucket.
@@ -32,7 +34,7 @@ do {
     //
     let uplink = try Storj.uplink()
     //
-    print("Getting Accessig using :\nSatellite address : \(storjSatellite)\nAPI key : \(storjApiKey)\nEncryption phassphrase : \(storjEncryption)")
+    print("Getting Access using :\nSatellite address : \(storjSatellite)\nAPI key : \(storjApiKey)\nEncryption phassphrase : \(storjEncryption)")
     //
     let access = try uplink.request_Access_With_Passphrase(satellite: storjSatellite, apiKey: storjApiKey, encryption: storjEncryption)
     //
@@ -92,7 +94,7 @@ do {
     //
     downloadObject(project: &project, bucketName: storjBucket, localFullFileLocationToStore: localFullFileLocationToStore, storjDownloadPath: storjDownloadPath)
     //
-    var listObjectsOptions = ListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: false, custom: true)
+    var listObjectsOptions = ListObjectsOptions(prefix: "change-me-to-desired-prefix-with-/", cursor: "", recursive: true, system: true, custom: true)
     //
     let objectslist = try project.list_Objects(bucket: storjBucket, listObjectsOptions: &listObjectsOptions)
     print("\nList object")
@@ -100,6 +102,14 @@ do {
         print("Object Name : \(object.key)")
         print("Object Size : \(object.system.content_length)")
     }
+    
+    //Deleting Object
+    let deletedObject = try  project.delete_Object(bucket: storjBucket, key: storjUploadPath)
+    print("\nObject deleted !!")
+    print("Object Information : ")
+    print("Object Name : \(deletedObject.key)")
+    print("Object Size : \(deletedObject.system.content_length)")
+    
     //
     print("\nCreating share access")
     //
@@ -147,19 +157,26 @@ do {
             print(error)
         }
     }
+    
+    print("\nUploading object on storj V3 network via overridden serialized access...")
     //
-    //Deleting Object
-    let deletedObject = try  projectparsed.delete_Object(bucket: storjBucket, key: storjUploadPath)
+    uploadObject(project: projectparsed, bucketName: storjBucket, localFullFileNameToUpload: localFullFileNameToUpload, storjUploadPath: storjUploadPath2)
+    
+    //
+    //Deleting Object uploaded via overridden serialized access
+    let deletedObject2 = try  projectparsed.delete_Object(bucket: storjBucket, key: storjUploadPath2)
     print("\nObject deleted !!")
     print("Object Information : ")
-    print("Object Name : \(deletedObject.key)")
-    print("Object Size : \(deletedObject.system.content_length)")
+    print("Object Name : \(deletedObject2.key)")
+    print("Object Size : \(deletedObject2.system.content_length)")
+    
     //Deleting bucket
     let deleteBucket = try project.delete_Bucket(bucket: storjBucket)
     //
     print("\nBucket deleted!!")
     print("Bucket information :\nBucket created : ", unixTimeConvert(unixTime: deleteBucket.created))
     print("Bucket name : ", deleteBucket.name)
+    //
     //
 } catch let error as InternalError {
     print("Internal SO error")

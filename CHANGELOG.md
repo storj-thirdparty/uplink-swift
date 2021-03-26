@@ -1,4 +1,12 @@
-# Storj-swift Changelog
+# Uplink-swift Changelog
+
+## [1.2.2] - 26-03-2021
+### Changelog:
+* Updated Makefile to enforce using uplink-c latest version (v1.2.2)
+* Updated HelloStorj/main.swift test cases sample file
+* Tested on uplink-c v1.2.2
+* Updated README.md
+* Updated docs/README.md
 
 ## [1.0.4] - 07-08-2020
 ### Changelog:
