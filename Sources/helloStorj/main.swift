@@ -155,11 +155,10 @@ do {
             print(error)
         }
     }
-    
+    //
     print("\nUploading object on storj V3 network via overridden serialized access...")
     //
     uploadObject(project: projectparsed, bucketName: storjBucket, localFullFileNameToUpload: localFullFileNameToUpload, storjUploadPath: storjUploadPath2)
-    
     //
     //Deleting Object uploaded via overridden serialized access
     let deletedObject2 = try  projectparsed.delete_Object(bucket: storjBucket, key: storjUploadPath2)
@@ -167,7 +166,6 @@ do {
     print("Object Information : ")
     print("Object Name : \(deletedObject2.key)")
     print("Object Size : \(deletedObject2.system.content_length)")
-    
     //Deleting bucket
     let deleteBucket = try project.delete_Bucket(bucket: storjBucket)
     //
