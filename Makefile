@@ -23,7 +23,7 @@ build:
 	if test ! -d $(CLIBUPLINK_DIR_NAME); then echo '$(RED_COLOR) \nBuild Failed : Directory $(CLIBUPLINK_DIR_NAME) does not exits\n$(RESET_COLOR)' && exit 1; fi
 	if test ! -f $(CLIBUPLINK_FILENAME); then echo '$(RED_COLOR) \n Build Failed : File $(CLIBUPLINK_FILENAME) does not exits\n$(RESET_COLOR)\n' && exit 1; fi
 	if test ! -d $(CLIBUPLINK_INCLUDE_FOLDER_NAME); then mkdir $(CLIBUPLINK_INCLUDE_FOLDER_NAME); fi
-	if test ! -d $(UPLINKC_NAME); then git clone https://github.com/storj/uplink-c; fi
+	if test ! -d $(UPLINKC_NAME); then git clone --depth 1 --branch v1.2.2 https://github.com/storj/uplink-c; fi
 	cd uplink-c;$(GOBUILD) -o $(LIBRARY_NAME) -buildmode=c-shared;mv $(COPY_LIBRARY_FILE) ../$(CLIBUPLINK_INCLUDE_FOLDER_NAME);
 	rm -rf $(UPLINKC_NAME);
 	echo ' $(GREEN_COLOR) \n Successfully build $(RESET_COLOR)';

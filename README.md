@@ -2,7 +2,7 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a62886560a64453b2d5417393b2305f)](https://app.codacy.com/gh/storj-thirdparty/uplink-swift?utm_source=github.com&utm_medium=referral&utm_content=storj-thirdparty/uplink-swift&utm_campaign=Badge_Grade_Dashboard)
 
-#### *Developed using v1.1.0 storj/uplink-c*
+#### *Developed using v1.2.2 storj/uplink-c*
 
 [API documentation and tutorial](https://storj-thirdparty.github.io/uplink-swift/#/)
 
