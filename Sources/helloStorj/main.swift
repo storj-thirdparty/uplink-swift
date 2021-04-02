@@ -102,14 +102,12 @@ do {
         print("Object Name : \(object.key)")
         print("Object Size : \(object.system.content_length)")
     }
-    
     //Deleting Object
     let deletedObject = try  project.delete_Object(bucket: storjBucket, key: storjUploadPath)
     print("\nObject deleted !!")
     print("Object Information : ")
     print("Object Name : \(deletedObject.key)")
     print("Object Size : \(deletedObject.system.content_length)")
-    
     //
     print("\nCreating share access")
     //
