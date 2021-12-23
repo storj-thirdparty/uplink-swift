@@ -87,12 +87,13 @@ public class Storj {
         let fileManger = FileManager.default
         //
         if !fileManger.fileExists(atPath: storjSwiftPathString) {
-            throw storjException(code: 9999, message: "Failed to open dylib file")
+            throw storjException(code: 9999, message: "dylib file does not exist at " + storjSwiftPathString)
         }
         // Opening dylib file
         let dynammicFileHandle = dlopen(storjSwiftPathString, RTLD_LOCAL|RTLD_NOW)
         if dynammicFileHandle == nil {
-            throw storjException(code: 9999, message: "Failed to open dylib file")
+            let dlerror = String(cString: dlerror())
+            throw storjException(code: 9999, message: "Failed to open dylib file: " + dlerror)
         }
         do {
             // Loading function from .dylib file
